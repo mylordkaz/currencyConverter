@@ -1,27 +1,27 @@
 package config
 
 import (
-	"encoding/json"
+	"fmt"
 	"os"
 )
 
 type Config struct {
-	FiatAPIURL 		string `json:"fiatApiUrl"`
-	CryptoAPIURL	string `json:"cryptoApiUrl"`
+	FiatAPIURL 		string
+	CryptoAPIURL	string
 }
 
 func Load() (*Config, error) {
-	file, err := os.Open("config.json")
-	if err != nil {
-		return nil, err 
+	fiatAPIURL := os.Getenv("FIAT_API_URL")
+	if fiatAPIURL == "" {
+		return nil, fmt.Errorf("FIAT_API_URL env is not set")
 	}
-	defer file.Close()
-
-	var cfg Config
-	err = json.NewDecoder(file).Decode(&cfg)
-	if err != nil {
-		return nil, err 
+	cryptoAPIURL := os.Getenv("CRYPTO_API_URL")
+	if cryptoAPIURL == ""{
+		return nil, fmt.Errorf("CRYPTO_API_URL env is not set")
 	}
 
-	return &cfg, nil
+	return &Config{
+		FiatAPIURL: fiatAPIURL,
+		CryptoAPIURL: cryptoAPIURL,
+	}, nil
 }

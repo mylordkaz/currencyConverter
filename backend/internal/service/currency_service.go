@@ -1,34 +1,56 @@
 package service
 
 import (
-	"strings"
-	"sync"
-	"time"
+	"encoding/json"
+	"fmt"
+	"net/http"
 
 	"github.com/mylordkaz/currencyConverter/backend/internal/models"
+	"github.com/mylordkaz/currencyConverter/backend/pkg/utils"
 )
 
 
 type CurrencyService struct {
-	fiatCurrencies 		map[string]models.Currency
-	cryptoCurrencies 	map[string]models.Currency
-	mutex 				sync.RWMutex
-	updateInvertval		time.Duration
+	baseURL 	string
+	apiKey 		string
+	client 		*http.Client
+
 }
 
-func NewCurrencyService() *CurrencyService {
-	cs := &CurrencyService{
-		fiatCurrencies: make(map[string]models.Currency),
-		cryptoCurrencies: make(map[string]models.Currency),
-		updateInvertval: 24 * time.Hour,
-	}
-	go cs.periodcUpdate()
-	return cs
-}
-
-func (cs *CurrencyService) periodcUpdate() {
-	for {
-		
+func NewCurrencyService(baseURL, apiKey string) *CurrencyService {
+	return &CurrencyService{
+		baseURL: baseURL,
+		apiKey: apiKey,
+		client: utils.NewHTTPClient(),
 	}
 }
 
+
+func (s *CurrencyService) FetchCurrencies() (*models.ExchangeRates, error) {
+	url := fmt.Sprintf("%s/USD", s.baseURL)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating request: %w", err)
+	}
+	if s.apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+s.apiKey)
+	}
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error making request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
+	}
+
+	var rates models.ExchangeRates
+	if err := json.NewDecoder(resp.Body).Decode(&rates); err != nil {
+		return nil, fmt.Errorf("error decoding response %w", err)
+	}
+
+	return &rates, nil 
+}

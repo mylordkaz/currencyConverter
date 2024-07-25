@@ -1,4 +1,4 @@
-package converter
+package service
 
 import "github.com/mylordkaz/currencyConverter/backend/pkg/utils/exchangerates"
 

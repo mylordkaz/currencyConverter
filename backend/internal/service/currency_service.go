@@ -26,15 +26,12 @@ func NewCurrencyService(baseURL, apiKey string) *CurrencyService {
 }
 
 
-func (s *CurrencyService) FetchCurrencies() (*models.ExchangeRates, error) {
-	url := fmt.Sprintf("%s/USD", s.baseURL)
+func (s *CurrencyService) FetchCurrencies(base string) (*models.ExchangeRates, error) {
+	url := fmt.Sprintf("%s/v6/%s/latest/%s", s.baseURL, s.apiKey, base)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating request: %w", err)
-	}
-	if s.apiKey != "" {
-		req.Header.Set("Authorization", "Bearer "+s.apiKey)
+		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
 	resp, err := s.client.Do(req)
@@ -47,10 +44,24 @@ func (s *CurrencyService) FetchCurrencies() (*models.ExchangeRates, error) {
 		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
 	}
 
-	var rates models.ExchangeRates
-	if err := json.NewDecoder(resp.Body).Decode(&rates); err != nil {
-		return nil, fmt.Errorf("error decoding response %w", err)
+	var apiResponse struct {
+		Result 	string 				`json:"result"`
+		Base 	string 				`json:"base_code"`
+		Rates 	map[string]float64	`json:"conversion_rates"`
 	}
 
-	return &rates, nil 
+	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+		return nil, fmt.Errorf("error decoding response: %w", err)
+	}
+
+	if apiResponse.Result != "success" {
+		return nil, fmt.Errorf("API returned non-success result: %s", apiResponse.Result)
+	}
+
+	rates := &models.ExchangeRates{
+		Base: apiResponse.Base,
+		Rates: apiResponse.Rates,
+	}
+
+	return rates, nil 
 }

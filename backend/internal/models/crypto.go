@@ -2,11 +2,7 @@ package models
 
 
 type CryptoResponse struct {
-	Data CryptoRates `json:"data"`
-}
-
-type CryptoRates struct {
-	CryptoCurrency  []CryptoCurrency `json:"cryptocurrencies"`
+	Data []CryptoCurrency `json:"data"`
 }
 
 type CryptoCurrency struct {

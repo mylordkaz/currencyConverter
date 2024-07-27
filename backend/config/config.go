@@ -29,6 +29,7 @@ func Load() (*Config, error) {
 		FiatAPIURL: fiatAPIURL,
 		FiatAPIKEY: fiatAPIKEY,
 		CryptoAPIURL: cryptoAPIURL,
+		CryptoAPIKEY: cryptoAPIKEY,
 		Port: getEnvDefault("PORT", "8080"),
 	}, nil
 }

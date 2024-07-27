@@ -24,7 +24,7 @@ func NewCryptoService(apiURL, apiKey string) *CryptoService {
 	}
 }
 
-func (s *CryptoService) FetchCrypto() (*models.CryptoRates, error) {
+func (s *CryptoService) FetchCrypto() ([]models.CryptoCurrency, error) {
 	url := fmt.Sprintf("%s/v1/cryptocurrency/listings/latest", s.apiURL)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -49,5 +49,5 @@ func (s *CryptoService) FetchCrypto() (*models.CryptoRates, error) {
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
 
-	return &cryptoResponse.Data, nil
+	return cryptoResponse.Data, nil
 }

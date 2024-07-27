@@ -25,7 +25,7 @@ func NewCryptoService(apiURL, apiKey string) *CryptoService {
 }
 
 func (s *CryptoService) FetchCrypto() (*models.CryptoRates, error) {
-	url := fmt.Sprintf("%s/v1/cryptocurrency/listing/latest", s.apiURL)
+	url := fmt.Sprintf("%s/v1/cryptocurrency/listings/latest", s.apiURL)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

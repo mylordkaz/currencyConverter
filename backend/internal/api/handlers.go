@@ -17,7 +17,9 @@ func NewHandler(currencyService *service.CurrencyService) *Handler {
 }
 
 func (h *Handler) GetCurrencies(c *gin.Context) {
-	currencies, err := h.currencyService.FetchCurrencies()
+	base := c.DefaultQuery("base", "USD")
+
+	currencies, err := h.currencyService.FetchCurrencies(base)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

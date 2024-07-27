@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/mylordkaz/currencyConverter/backend/config"
 	"github.com/mylordkaz/currencyConverter/backend/internal/api"
 	"github.com/mylordkaz/currencyConverter/backend/internal/service"
@@ -12,6 +13,11 @@ import (
 
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Error loading .env file")
+	}
+	
 
 	cfg, err := config.Load()
 	if err != nil {

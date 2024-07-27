@@ -10,10 +10,14 @@ import (
 
 type Handler struct {
 	currencyService *service.CurrencyService
+	cryptoService 	*service.CryptoService
 }
 
-func NewHandler(currencyService *service.CurrencyService) *Handler {
-	return &Handler{currencyService: currencyService}
+func NewHandler(currencyService *service.CurrencyService, cryptoService *service.CryptoService) *Handler {
+	return &Handler{
+		currencyService: currencyService,
+		cryptoService: cryptoService,
+	}
 }
 
 func (h *Handler) GetCurrencies(c *gin.Context) {
@@ -25,4 +29,13 @@ func (h *Handler) GetCurrencies(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, currencies)
+}
+
+func (h *Handler) GetCrypto(c *gin.Context) {
+	crypto, err := h.cryptoService.FetchCrypto()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, crypto )
 }

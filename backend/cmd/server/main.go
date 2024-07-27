@@ -25,10 +25,12 @@ func main() {
 	}
 
 	currencyService := service.NewCurrencyService(cfg.FiatAPIURL, cfg.FiatAPIKEY)
-	handler := api.NewHandler(currencyService)
+	cryptoService := service.NewCryptoService(cfg.CryptoAPIURL, cfg.CryptoAPIKEY)
+	handler := api.NewHandler(currencyService, cryptoService)
 
 	r := gin.Default()
-	r.GET("/api/currencies", handler.GetCurrencies)
+	r.GET("/api/fiat", handler.GetCurrencies)
+	r.GET("/api/crypto", handler.GetCrypto)
 
 	log.Printf("Starting server on %s", cfg.Port)
 	if err := http.ListenAndServe(":"+cfg.Port, r); err != nil {

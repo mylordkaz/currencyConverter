@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/mylordkaz/currencyConverter/backend/internal/models"
 	"github.com/mylordkaz/currencyConverter/backend/pkg/utils"
+	"github.com/patrickmn/go-cache"
 )
 
 
@@ -14,6 +16,7 @@ type CurrencyService struct {
 	baseURL 	string
 	apiKey 		string
 	client 		*http.Client
+	cache 		*cache.Cache
 
 }
 
@@ -22,11 +25,20 @@ func NewCurrencyService(baseURL, apiKey string) *CurrencyService {
 		baseURL: baseURL,
 		apiKey: apiKey,
 		client: utils.NewHTTPClient(),
+		cache: cache.New(15*time.Minute, 30*time.Minute),
 	}
 }
 
 
 func (s *CurrencyService) FetchCurrencies(base string) (*models.ExchangeRates, error) {
+	cacheKey := fmt.Sprintf("fiat_rates_%s", base)
+
+	// check cache
+	if cached, found := s.cache.Get(cacheKey); found {
+		return cached.(*models.ExchangeRates), nil
+	}
+
+	// if not in cache fetch from API
 	url := fmt.Sprintf("%s/v6/%s/latest/%s", s.baseURL, s.apiKey, base)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -62,6 +74,9 @@ func (s *CurrencyService) FetchCurrencies(base string) (*models.ExchangeRates, e
 		Base: apiResponse.Base,
 		Rates: apiResponse.Rates,
 	}
+
+	// cache the result 
+	s.cache.Set(cacheKey, rates, cache.DefaultExpiration)
 
 	return rates, nil 
 }

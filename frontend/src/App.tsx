@@ -15,7 +15,7 @@ export default function App() {
         </h1>
 
         <div className="space-y-4">
-          <div className="inline-flex items-center bg-slate-400 rounded-2xl p-2 ml-2">
+          <div className="inline-flex items-center bg-transparent rounded-2xl p-2 ml-2">
             <span className="text-2xl mr-2">🇺🇸</span>
             <select className="bg-transparent text-white text-md font-semibold focus:outline-none">
               <option value="USD">USD</option>

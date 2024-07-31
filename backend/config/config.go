@@ -10,6 +10,7 @@ type Config struct {
 	FiatAPIKEY		string
 	CryptoAPIURL	string
 	CryptoAPIKEY	string
+	FrontURL		string
 	Port			string
 }
 
@@ -21,8 +22,12 @@ func Load() (*Config, error) {
 	}
 	cryptoAPIURL := os.Getenv("CRYPTO_API_URL")
 	cryptoAPIKEY := os.Getenv("CRYPTO_API_KEY")
-	if cryptoAPIKEY == ""{
+	if cryptoAPIKEY == "" {
 		return nil, fmt.Errorf("CRYPTO_API_KEY env is not set")
+	}
+	frontURL := os.Getenv("FRONT_URL")
+	if frontURL == "" {
+		return nil, fmt.Errorf("frontend URL is not defined")
 	}
 
 	return &Config{
@@ -30,6 +35,7 @@ func Load() (*Config, error) {
 		FiatAPIKEY: fiatAPIKEY,
 		CryptoAPIURL: cryptoAPIURL,
 		CryptoAPIKEY: cryptoAPIKEY,
+		FrontURL: frontURL,
 		Port: getEnvDefault("PORT", "8080"),
 	}, nil
 }

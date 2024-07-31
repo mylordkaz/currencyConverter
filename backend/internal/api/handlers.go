@@ -23,12 +23,12 @@ func NewHandler(currencyService *service.CurrencyService, cryptoService *service
 func (h *Handler) GetCurrencies(c *gin.Context) {
 	base := c.DefaultQuery("base", "USD")
 
-	currencies, err := h.currencyService.FetchCurrencies(base)
+	rates, err := h.currencyService.FetchCurrencies(base)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, currencies)
+	c.JSON(http.StatusOK, rates)
 }
 
 func (h *Handler) GetCrypto(c *gin.Context) {

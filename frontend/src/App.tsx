@@ -1,11 +1,63 @@
+import axios from 'axios';
+
+import React, { useEffect, useState } from 'react';
+
+interface Currency {
+  code: string;
+  flag: string;
+  rate: number;
+  description: string;
+}
+const apiURL = import.meta.env.VITE_API_URL as string;
+
 export default function App() {
-  const currencies = [
-    { code: 'JPY', flag: '', rate: 147.24, description: '1 USD = 147.24¥' },
-    { code: 'USD', flag: '', rate: 1.0, description: '1 USD = 1$' },
-    { code: 'EUR', flag: '', rate: 0.92, description: '1 USD = 0.919E' },
-    { code: 'AUD', flag: '', rate: 1.5, description: '1 USD = 1.504$' },
-    { code: 'CHF', flag: '', rate: 0.87, description: '1 USD = 0.87CHF' },
-  ];
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [baseCurrency, setBaseCurrency] = useState<string>('USD');
+  const [amount, setAmount] = useState<string>('0');
+
+  useEffect(() => {
+    fetchCurrencies();
+  }, [baseCurrency]);
+
+  const fetchCurrencies = async () => {
+    try {
+      const response = await axios.get(
+        `${apiURL}api/fiat?base=${baseCurrency}`
+      );
+      console.log('apiURL :', apiURL);
+      console.log(response);
+      const rates = response.data.rates;
+      const newCurrencies: Currency[] = Object.entries(rates).map(
+        ([code, rate]) => ({
+          code,
+          flag: getFlagEmoji(code),
+          rate: rate as number,
+          description: `1 ${baseCurrency} = ${rate}${code}`,
+        })
+      );
+      setCurrencies(newCurrencies);
+    } catch (error) {
+      console.error('Error fetching currencies', error);
+    }
+  };
+
+  const getFlagEmoji = (countryCode: string) => {
+    const codePoints = countryCode
+      .slice(0, 2)
+      .toUpperCase()
+      .split('')
+      .map((char) => 127397 + char.charCodeAt(0));
+    return String.fromCodePoint(...codePoints);
+  };
+
+  const handleBaseCurrencyChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setBaseCurrency(e.target.value);
+  };
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAmount(e.target.value);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-400 to-blue-900 flex items-center justify-center p-4">
@@ -16,11 +68,17 @@ export default function App() {
 
         <div className="space-y-4">
           <div className="inline-flex items-center bg-transparent rounded-2xl p-2 ml-2">
-            <span className="text-2xl mr-2">🇺🇸</span>
-            <select className="bg-transparent text-white text-md font-semibold focus:outline-none">
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="JPY">JPY</option>
+            <span className="text-2xl mr-2">{getFlagEmoji(baseCurrency)}</span>
+            <select
+              className="bg-transparent text-white text-md font-semibold focus:outline-none"
+              value={baseCurrency}
+              onChange={handleBaseCurrencyChange}
+            >
+              {currencies.map((currency) => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.code}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -29,7 +87,8 @@ export default function App() {
               <span className="text-white text-3xl font-bold mr-2">$</span>
               <input
                 type=""
-                defaultValue="1"
+                value={amount}
+                onChange={handleAmountChange}
                 className="bg-transparent text-white text-3xl font-bold focus:outline-none w-full"
               />
             </div>
@@ -52,9 +111,7 @@ export default function App() {
                 <div className="flex items-center">
                   <div className="text-right">
                     <div className="font-semibold">
-                      {currency.code === 'CHF'
-                        ? `CHF ${currency.rate.toFixed(2)}`
-                        : `${currency.rate.toFixed(2)}`}
+                      {(currency.rate * parseFloat(amount)).toFixed(2)}
                     </div>
                     <div className="text-xs text-gray-500">
                       {currency.description}

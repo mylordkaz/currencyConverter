@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/mylordkaz/currencyConverter/backend/config"
@@ -29,6 +30,11 @@ func main() {
 	handler := api.NewHandler(currencyService, cryptoService)
 
 	r := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{cfg.FrontURL}
+	r.Use(cors.New(config))
+
 	r.GET("/api/fiat", handler.GetCurrencies)
 	r.GET("/api/crypto", handler.GetCrypto)
 

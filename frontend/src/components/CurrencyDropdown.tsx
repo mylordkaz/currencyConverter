@@ -47,18 +47,18 @@ const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <div
-        className="flex items-center bg-slate-400 rounded-lg p-2 cursor-pointer"
+        className="inline-flex items-center gap-2 bg-transparent rounded-lg p-2 cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>{currencies.find((c) => c.code === selectedCurrency)?.flag}</span>
-        <span>{selectedCurrency}</span>
+        <span> {selectedCurrency}</span>
       </div>
       {isOpen && (
-        <div className="absolute mt-1 w-full bg-slate-300 rounded-lg shadow-lg z-10">
+        <div className="absolute mt-1 ml-4 w-auto bg-gray-200 rounded-lg shadow-lg z-10">
           <input
             type="text"
             placeholder="search"
-            className="w-full p-2 border-b"
+            className="w-full p-2 rounded-t-lg"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -66,7 +66,7 @@ const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({
             {filteredCurrencies.map((currency) => (
               <div
                 key={currency.code}
-                className="flex items-center justify-between p-2 hover:bg-gray-200 cursor-pointer"
+                className="flex items-center justify-between gap-32 p-2 rounded-b-lg hover:bg-gray-100 cursor-pointer"
                 onClick={() => {
                   onSelect(currency.code);
                   setIsOpen(false);

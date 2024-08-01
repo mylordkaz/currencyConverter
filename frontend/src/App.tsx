@@ -1,13 +1,17 @@
 import axios from 'axios';
-
 import React, { useEffect, useState } from 'react';
+import CurrencyDropdown from './components/CurrencyDropdown';
+import { currencyCodes, currencyInfo } from './service/currencyInfo';
 
 interface Currency {
   code: string;
   flag: string;
   rate: number;
   description: string;
+  name: string;
+  symbol: string;
 }
+
 const apiURL = import.meta.env.VITE_API_URL as string;
 
 export default function App() {
@@ -24,18 +28,20 @@ export default function App() {
       const response = await axios.get(
         `${apiURL}api/fiat?base=${baseCurrency}`
       );
-      console.log('apiURL :', apiURL);
-      console.log(response);
+      console.log('reponse', response);
       const rates = response.data.rates;
-      const newCurrencies: Currency[] = Object.entries(rates).map(
-        ([code, rate]) => ({
+      const newCurrencies: Currency[] = currencyCodes
+        .filter((code) => code in rates)
+        .map((code) => ({
           code,
+          name: currencyInfo[code].name,
           flag: getFlagEmoji(code),
-          rate: rate as number,
-          description: `1 ${baseCurrency} = ${rate}${code}`,
-        })
-      );
+          rate: rates[code],
+          symbol: currencyInfo[code].symbol,
+          description: `1 ${baseCurrency} = ${rates[code]}${code}`,
+        }));
       setCurrencies(newCurrencies);
+      setBaseCurrency(response.data.base);
     } catch (error) {
       console.error('Error fetching currencies', error);
     }
@@ -50,10 +56,8 @@ export default function App() {
     return String.fromCodePoint(...codePoints);
   };
 
-  const handleBaseCurrencyChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setBaseCurrency(e.target.value);
+  const handleBaseCurrencyChange = (currency: string) => {
+    setBaseCurrency(currency);
   };
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
@@ -67,24 +71,17 @@ export default function App() {
         </h1>
 
         <div className="space-y-4">
-          <div className="inline-flex items-center bg-transparent rounded-2xl p-2 ml-2">
-            <span className="text-2xl mr-2">{getFlagEmoji(baseCurrency)}</span>
-            <select
-              className="bg-transparent text-white text-md font-semibold focus:outline-none"
-              value={baseCurrency}
-              onChange={handleBaseCurrencyChange}
-            >
-              {currencies.map((currency) => (
-                <option key={currency.code} value={currency.code}>
-                  {currency.code}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CurrencyDropdown
+            currencies={currencies}
+            selectedCurrency={baseCurrency}
+            onSelect={handleBaseCurrencyChange}
+          />
 
           <div className="bg-slate-400 rounded-3xl p-4 flex items-center justify-between">
             <div className="flex items-center flex-grow">
-              <span className="text-white text-3xl font-bold mr-2">$</span>
+              <span className="text-white text-3xl font-bold mr-2">
+                {currencies.find((c) => c.code === baseCurrency)?.symbol}
+              </span>
               <input
                 type=""
                 value={amount}

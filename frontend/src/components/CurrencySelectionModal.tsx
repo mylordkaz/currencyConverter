@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Currency {
   code: string;
@@ -19,6 +19,23 @@ const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const filteredCurrencies = currencies.filter(
     (currency) =>
@@ -27,7 +44,7 @@ const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
   );
 
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="bg-black text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl"

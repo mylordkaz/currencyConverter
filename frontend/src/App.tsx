@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import CurrencyDropdown from './components/CurrencyDropdown';
 import { currencyCodes, currencyInfo } from './service/currencyInfo';
+import CurrencySelectionModal from './components/CurrencySelectionModal';
 
 interface Currency {
   code: string;
@@ -17,6 +18,7 @@ const apiURL = import.meta.env.VITE_API_URL as string;
 export default function App() {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [baseCurrency, setBaseCurrency] = useState<string>('USD');
+  const [currencyList, setCurrencyList] = useState<string[]>([]);
   const [amount, setAmount] = useState<string>('0');
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export default function App() {
       const response = await axios.get(
         `${apiURL}api/fiat?base=${baseCurrency}`
       );
-      console.log('reponse', response);
+
       const rates = response.data.rates;
       const newCurrencies: Currency[] = currencyCodes
         .filter((code) => code in rates)
@@ -61,6 +63,13 @@ export default function App() {
   };
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
+  };
+  const handleCurrenciesList = (currencyCode: string) => {
+    setCurrencyList((prev) =>
+      prev.includes(currencyCode)
+        ? prev.filter((code) => code !== currencyCode)
+        : [...prev, currencyCode]
+    );
   };
 
   return (
@@ -96,34 +105,37 @@ export default function App() {
           <h1 className="text-2xl font-bold mb-4">Fiat</h1>
 
           <div className="space-y-2">
-            {currencies.map((currency) => (
-              <div
-                key={currency.code}
-                className="flex items-center justify-between bg-gray-50 rounded-xl p-3"
-              >
-                <div className="flex items-center">
-                  <span className="text-2xl mr-2">{currency.flag}</span>
-                  <span className="font-semibold">{currency.code}</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="text-right">
-                    <div className="font-semibold">
-                      {(currency.rate * parseFloat(amount)).toFixed(2)}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {currency.description}
-                    </div>
+            {currencies
+              .filter((currency) => currencyList.includes(currency.code))
+              .map((currency) => (
+                <div
+                  key={currency.code}
+                  className="flex items-center justify-between bg-gray-50 rounded-xl p-3"
+                >
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-2">{currency.flag}</span>
+                    <span className="font-semibold">{currency.code}</span>
                   </div>
-                  <button className="ml-4 text-gray-400">⋮</button>
+                  <div className="flex items-center">
+                    <div className="text-right">
+                      <div className="font-semibold">
+                        {(currency.rate * parseFloat(amount)).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {currency.description}
+                      </div>
+                    </div>
+                    <button className="ml-4 text-gray-400">⋮</button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
-
           <div className="mt-4 flex justify-end">
-            <button className="bg-black text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl">
-              +
-            </button>
+            <CurrencySelectionModal
+              currencies={currencies}
+              selectedCurrency={currencyList}
+              onCurrencySelected={handleCurrenciesList}
+            />
           </div>
         </div>
       </div>

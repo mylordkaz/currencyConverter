@@ -18,12 +18,19 @@ const apiURL = import.meta.env.VITE_API_URL as string;
 export default function App() {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [baseCurrency, setBaseCurrency] = useState<string>('USD');
-  const [currencyList, setCurrencyList] = useState<string[]>([]);
-  const [amount, setAmount] = useState<string>('0');
+  const [amount, setAmount] = useState<string>('');
+  const [currencyList, setCurrencyList] = useState<string[]>(() => {
+    const savedList = localStorage.getItem('currencyList');
+    return savedList ? JSON.parse(savedList) : [];
+  });
 
   useEffect(() => {
     fetchCurrencies();
   }, [baseCurrency]);
+
+  useEffect(() => {
+    localStorage.setItem('currencyList', JSON.stringify(currencyList));
+  }, [currencyList]);
 
   const fetchCurrencies = async () => {
     try {
@@ -119,7 +126,9 @@ export default function App() {
                   <div className="flex items-center">
                     <div className="text-right">
                       <div className="font-semibold">
-                        {(currency.rate * parseFloat(amount)).toFixed(2)}
+                        {amount
+                          ? (currency.rate * parseFloat(amount)).toFixed(2)
+                          : '0.00'}
                       </div>
                       <div className="text-xs text-gray-500">
                         {currency.description}

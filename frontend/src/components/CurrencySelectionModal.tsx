@@ -55,8 +55,8 @@ const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg z-10">
           <input
             type="text"
-            placeholder="Search currencies"
-            className="w-full p-2 rounded-t-lg"
+            placeholder="Search..."
+            className="w-full p-2 bg-gray-100 border-b border-gray-300 rounded-t-lg focus:outline-none focus:ring focus:border-blue-300"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -67,12 +67,6 @@ const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
                 className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
                 onClick={() => onCurrencySelected(currency.code)}
               >
-                <input
-                  type="checkbox"
-                  checked={selectedCurrency.includes(currency.code)}
-                  onChange={() => {}}
-                  className="mr-2"
-                />
                 <span className="mr-2">{currency.flag}</span>
                 <span>
                   {currency.code} - {currency.name}

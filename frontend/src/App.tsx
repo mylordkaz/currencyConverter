@@ -100,7 +100,7 @@ export default function App() {
 
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
-      <div className="min-h-screen bg-gradient-to-b from-blue-400 to-blue-900 flex items-center justify-center p-4">
+      <div className=" min-h-screen bg-gradient-to-b from-blue-400 to-blue-900 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <h1 className="text-4xl font-bold mb-8 text-center text-black">
             Currency Converter

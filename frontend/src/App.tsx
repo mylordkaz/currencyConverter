@@ -138,9 +138,12 @@ export default function App() {
                   ref={provided.innerRef}
                   className="space-y-2"
                 >
-                  {currencies
-                    .filter((currency) => currencyList.includes(currency.code))
-                    .map((currency, index) => (
+                  {currencyList.map((currencyCode, index) => {
+                    const currency = currencies.find(
+                      (c) => c.code === currencyCode
+                    );
+                    if (!currency) return null;
+                    return (
                       <Draggable
                         key={currency.code}
                         draggableId={currency.code}
@@ -179,7 +182,8 @@ export default function App() {
                           </div>
                         )}
                       </Draggable>
-                    ))}
+                    );
+                  })}
                   {currencyList.length === 0 && (
                     <div>
                       No currencies selected. Please add some currencies.

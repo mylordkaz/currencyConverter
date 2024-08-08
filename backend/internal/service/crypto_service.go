@@ -67,7 +67,7 @@ func (s *CryptoService) FetchCrypto() ([]models.CryptoCurrency, error) {
 
 	// Decode the JSON into the struct
 	var cryptoResponse models.CryptoResponse
-	if err := json.NewDecoder(resp.Body).Decode(&cryptoResponse); err != nil {
+	if err := json.Unmarshal(body, &cryptoResponse); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
 

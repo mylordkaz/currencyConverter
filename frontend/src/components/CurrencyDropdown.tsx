@@ -5,6 +5,7 @@ interface Currency {
   name: string;
   flag: string;
   symbol: string;
+  type: string;
 }
 
 interface CurrencyDropdownProps {
@@ -50,7 +51,18 @@ const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({
         className="inline-flex items-center gap-2 bg-transparent rounded-lg p-2 cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span>{currencies.find((c) => c.code === selectedCurrency)?.flag}</span>
+        {currencies.find((c) => c.code === selectedCurrency)?.type ===
+        'crypto' ? (
+          <img
+            src={currencies.find((c) => c.code === selectedCurrency)?.flag}
+            alt={selectedCurrency}
+            className="w-6 h-6"
+          />
+        ) : (
+          <span>
+            {currencies.find((c) => c.code === selectedCurrency)?.flag}
+          </span>
+        )}
         <span> {selectedCurrency}</span>
         <div className="pointer-events-none flex items-center px-2 text-white">
           <svg
@@ -71,7 +83,7 @@ const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <div className="max-h60 overflow-y-auto">
+          <div className="max-h-60 overflow-y-auto">
             {filteredCurrencies.map((currency) => (
               <div
                 key={currency.code}
@@ -82,7 +94,15 @@ const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({
                 }}
               >
                 <div className="flex items-center">
-                  <span className="mr-2">{currency.flag}</span>
+                  {currency.type === 'crypto' ? (
+                    <img
+                      src={currency.flag}
+                      alt={currency.name}
+                      className="w-6 h-6 mr-2"
+                    />
+                  ) : (
+                    <span className="mr-2">{currency.flag}</span>
+                  )}
                   <div>
                     <div>{currency.code}</div>
                     <div className="text-sm text-gray-500">{currency.name}</div>

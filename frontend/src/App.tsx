@@ -23,7 +23,8 @@ interface Currency {
 const apiURL = import.meta.env.VITE_API_URL as string;
 
 export default function App() {
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [fiatCurrencies, setFiatCurrencies] = useState<Currency[]>([]);
+  const [cryptoCurrencies, setCryptoCurrencies] = useState<Currency[]>([]);
   const [baseCurrency, setBaseCurrency] = useState<string>('USD');
   const [amount, setAmount] = useState<string>('');
   const [currencyList, setCurrencyList] = useState<string[]>(() => {
@@ -31,22 +32,25 @@ export default function App() {
     return savedList ? JSON.parse(savedList) : [];
   });
 
+  const allCurrencies = [...fiatCurrencies, ...cryptoCurrencies];
+
   useEffect(() => {
-    fetchCurrencies();
+    fetchFiatCurrencies();
+    fetchCryptoCurrencies();
   }, [baseCurrency]);
 
   useEffect(() => {
     localStorage.setItem('currencyList', JSON.stringify(currencyList));
   }, [currencyList]);
 
-  const fetchCurrencies = async () => {
+  const fetchFiatCurrencies = async () => {
     try {
       const response = await axios.get(
         `${apiURL}api/fiat?base=${baseCurrency}`
       );
 
       const rates = response.data.rates;
-      const newCurrencies: Currency[] = currencyCodes
+      const fiats: Currency[] = currencyCodes
         .filter((code) => code in rates)
         .map((code) => ({
           code,
@@ -55,11 +59,32 @@ export default function App() {
           rate: rates[code],
           symbol: currencyInfo[code].symbol,
           description: `1 ${baseCurrency} = ${rates[code]}${code}`,
+          type: 'fiat',
         }));
-      setCurrencies(newCurrencies);
+      setFiatCurrencies(fiats);
       setBaseCurrency(response.data.base);
     } catch (error) {
       console.error('Error fetching currencies', error);
+    }
+  };
+
+  const fetchCryptoCurrencies = async () => {
+    try {
+      const response = await axios.get(`${apiURL}api/crypto`);
+      console.log(response.data);
+
+      const cryptos = response.data.map((crypto: any) => ({
+        code: crypto.symbol,
+        name: crypto.name,
+        flag: `https://s2.coinmarketcap.com/static/img/coins/64x64/${crypto.id}.png`,
+        rate: crypto.price,
+        symbol: crypto.symbol,
+        description: `1 ${baseCurrency} = ${crypto.price}${crypto.symbol}`,
+        type: 'crypto',
+      }));
+      setCryptoCurrencies(cryptos);
+    } catch (error) {
+      console.error('Error fetching cryptocurrencies', error);
     }
   };
 
@@ -109,7 +134,7 @@ export default function App() {
 
           <div className="space-y-4">
             <CurrencyDropdown
-              currencies={currencies}
+              currencies={allCurrencies}
               selectedCurrency={baseCurrency}
               onSelect={handleBaseCurrencyChange}
             />
@@ -117,7 +142,7 @@ export default function App() {
             <div className="bg-slate-400 rounded-3xl p-4 flex items-center justify-between">
               <div className="flex items-center flex-grow">
                 <span className="text-white text-3xl font-bold mr-2">
-                  {currencies.find((c) => c.code === baseCurrency)?.symbol}
+                  {allCurrencies.find((c) => c.code === baseCurrency)?.symbol}
                 </span>
                 <input
                   type=""
@@ -140,7 +165,7 @@ export default function App() {
                   className="space-y-2"
                 >
                   {currencyList.map((currencyCode, index) => {
-                    const currency = currencies.find(
+                    const currency = allCurrencies.find(
                       (c) => c.code === currencyCode
                     );
                     if (!currency) return null;
@@ -197,7 +222,7 @@ export default function App() {
 
             <div className="mt-4 flex justify-end">
               <CurrencySelectionModal
-                currencies={currencies}
+                currencies={allCurrencies}
                 selectedCurrency={currencyList}
                 onCurrencySelected={handleCurrenciesList}
               />

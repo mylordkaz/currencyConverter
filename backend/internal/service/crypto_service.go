@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -55,6 +56,16 @@ func (s *CryptoService) FetchCrypto() ([]models.CryptoCurrency, error) {
 		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
 	}
 
+	// Read the response
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}
+	// Print the raw JSON response
+	fmt.Println("Raw JSON response: ")
+	fmt.Println(string(body))
+
+	// Decode the JSON into the struct
 	var cryptoResponse models.CryptoResponse
 	if err := json.NewDecoder(resp.Body).Decode(&cryptoResponse); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)

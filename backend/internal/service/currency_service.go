@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -18,6 +19,10 @@ type CurrencyService struct {
 	client 		*http.Client
 	cache 		*cache.Cache
 
+}
+type CachedRates struct {
+	Rates 			*models.ExchangeRates
+	LastUpdateUnix	int64
 }
 
 func NewCurrencyService(baseURL, apiKey string) *CurrencyService {
@@ -35,10 +40,14 @@ func (s *CurrencyService) FetchCurrencies(base string) (*models.ExchangeRates, e
 
 	// check cache
 	if cached, found := s.cache.Get(cacheKey); found {
-		return cached.(*models.ExchangeRates), nil
+		cachedData := cached.(*CachedRates)
+
+		if time.Now().Unix() - cachedData.LastUpdateUnix < 24*60*60 {
+			return cachedData.Rates, nil
+		}
 	}
 
-	// if not in cache fetch from API
+	// if not in cache or outdated fetch from API
 	url := fmt.Sprintf("%s/v6/%s/latest/%s", s.baseURL, s.apiKey, base)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -56,13 +65,21 @@ func (s *CurrencyService) FetchCurrencies(base string) (*models.ExchangeRates, e
 		return nil, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
 	}
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}
+	fmt.Println("Raw JSON response: ")
+	fmt.Println(string(body))
+
 	var apiResponse struct {
-		Result 	string 				`json:"result"`
-		Base 	string 				`json:"base_code"`
-		Rates 	map[string]float64	`json:"conversion_rates"`
+		Result 				string 				`json:"result"`
+		Base 				string 				`json:"base_code"`
+		Rates 				map[string]float64	`json:"conversion_rates"`
+		TimeLastUpdateUnix 	int64 				`json:"time_last_update_unix"`
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+	if err := json.Unmarshal(body, &apiResponse); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
 
@@ -74,9 +91,13 @@ func (s *CurrencyService) FetchCurrencies(base string) (*models.ExchangeRates, e
 		Base: apiResponse.Base,
 		Rates: apiResponse.Rates,
 	}
+	cachedData := &CachedRates{
+		Rates: rates,
+		LastUpdateUnix: apiResponse.TimeLastUpdateUnix,
+	}
 
 	// cache the result 
-	s.cache.Set(cacheKey, rates, cache.DefaultExpiration)
+	s.cache.Set(cacheKey, cachedData, cache.NoExpiration)
 
 	return rates, nil 
 }

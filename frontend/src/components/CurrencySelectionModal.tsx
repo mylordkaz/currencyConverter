@@ -4,6 +4,7 @@ interface Currency {
   code: string;
   name: string;
   flag: string;
+  type: string;
 }
 
 interface CurrencySelectionModalProps {
@@ -67,7 +68,15 @@ const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
                 className="flex items-center p-2 text-md hover:bg-gray-100 cursor-pointer"
                 onClick={() => onCurrencySelected(currency.code)}
               >
-                <span className="mr-2">{currency.flag}</span>
+                {currency.type === 'crypto' ? (
+                  <img
+                    src={currency.flag}
+                    alt={currency.name}
+                    className="w-6 h-6 mr-2"
+                  />
+                ) : (
+                  <span className="mr-2">{currency.flag}</span>
+                )}
                 <span>
                   {currency.code} - {currency.name}
                 </span>

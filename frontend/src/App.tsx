@@ -77,9 +77,9 @@ export default function App() {
         code: crypto.symbol,
         name: crypto.name,
         flag: `https://s2.coinmarketcap.com/static/img/coins/64x64/${crypto.id}.png`,
-        rate: crypto.price,
+        rate: crypto.quote.USD.price,
         symbol: crypto.symbol,
-        description: `1 ${baseCurrency} = ${crypto.price}${crypto.symbol}`,
+        description: `1 ${baseCurrency} = ${crypto.quote.USD.price}${crypto.symbol}`, // need to find out how to get the price when baseCurrency is not dollars
         type: 'crypto',
       }));
       setCryptoCurrencies(cryptos);
@@ -183,9 +183,15 @@ export default function App() {
                             className="flex items-center justify-between bg-gray-50 rounded-xl p-3"
                           >
                             <div className="flex items-center">
-                              <span className="text-2xl mr-2">
-                                {currency.flag}
-                              </span>
+                              {currency.type === 'crypto' ? (
+                                <img
+                                  src={currency.flag}
+                                  alt={currency.name}
+                                  className="w-6 h-6 mr-2"
+                                />
+                              ) : (
+                                <span className="mr-2">{currency.flag}</span>
+                              )}
                               <span className="font-semibold">
                                 {currency.code}
                               </span>

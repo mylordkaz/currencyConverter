@@ -17,6 +17,7 @@ interface Currency {
   description: string;
   name: string;
   symbol: string;
+  type: 'fiat' | 'crypto';
 }
 
 const apiURL = import.meta.env.VITE_API_URL as string;

@@ -15,7 +15,7 @@ interface CurrencySelectionModalProps {
 
 const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
   currencies,
-  selectedCurrency,
+  //   selectedCurrency,
   onCurrencySelected,
 }) => {
   const [isOpen, setIsOpen] = useState(false);

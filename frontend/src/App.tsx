@@ -22,6 +22,51 @@ interface Currency {
 
 const apiURL = import.meta.env.VITE_API_URL as string;
 
+function convertCurrency(
+  amount: number,
+  from: Currency,
+  to: Currency,
+  _baseCurrency: string
+): number | null {
+  if (isNaN(amount) || !isFinite(amount)) {
+    console.error('Invalid amount for conversion');
+    return null;
+  }
+
+  if (!from || !to) {
+    console.error('Invalid currency for conversion');
+    return null;
+  }
+
+  if (from.code === to.code) {
+    return amount;
+  }
+
+  try {
+    let convertedAmount: number;
+
+    if (from.type === 'fiat' && to.type === 'fiat') {
+      convertedAmount = amount * (to.rate / from.rate);
+    } else if (from.type === 'crypto' && to.type === 'fiat') {
+      const cryptoInBase = amount * from.rate;
+      convertedAmount = cryptoInBase * to.rate;
+    } else if (from.type === 'fiat' && to.type === 'crypto') {
+      const fiatInBase = amount / from.rate;
+      convertedAmount = fiatInBase / to.rate;
+    } else if (from.type === 'crypto' && to.type === 'crypto') {
+      const fromInBase = amount * from.rate;
+      convertedAmount = fromInBase / to.rate;
+    } else {
+      throw new Error('Unknown currency types');
+    }
+
+    return Number(convertedAmount.toFixed(6));
+  } catch (error) {
+    console.error('Error during currency conversion:', error);
+    return null;
+  }
+}
+
 export default function App() {
   const [fiatCurrencies, setFiatCurrencies] = useState<Currency[]>([]);
   const [cryptoCurrencies, setCryptoCurrencies] = useState<Currency[]>([]);
@@ -35,8 +80,7 @@ export default function App() {
   const allCurrencies = [...fiatCurrencies, ...cryptoCurrencies];
 
   useEffect(() => {
-    fetchFiatCurrencies();
-    fetchCryptoCurrencies();
+    fetchFiatCurrencies().then(() => fetchCryptoCurrencies());
   }, [baseCurrency]);
 
   useEffect(() => {
@@ -71,17 +115,35 @@ export default function App() {
   const fetchCryptoCurrencies = async () => {
     try {
       const response = await axios.get(`${apiURL}api/crypto`);
-      console.log(response.data);
 
-      const cryptos = response.data.map((crypto: any) => ({
-        code: crypto.symbol,
-        name: crypto.name,
-        flag: `https://s2.coinmarketcap.com/static/img/coins/64x64/${crypto.id}.png`,
-        rate: crypto.quote.USD.price,
-        symbol: crypto.symbol,
-        description: `1 ${baseCurrency} = ${crypto.quote.USD.price}${crypto.symbol}`, // need to find out how to get the price when baseCurrency is not dollars
-        type: 'crypto',
-      }));
+      const usdToBaseRate =
+        fiatCurrencies.find((c) => c.code === baseCurrency)?.rate || 1;
+
+      const cryptos = response.data.map((crypto: any) => {
+        const usdPrice = crypto.quote.USD.price;
+        const basePrice = usdPrice * usdToBaseRate;
+
+        return {
+          code: crypto.symbol,
+          name: crypto.name,
+          flag: `https://s2.coinmarketcap.com/static/img/coins/64x64/${crypto.id}.png`,
+          rate: basePrice,
+          symbol: crypto.symbol,
+          description: `1 ${crypto.symbol} = ${basePrice.toFixed(
+            2
+          )} ${baseCurrency}`,
+          type: 'crypto',
+        };
+      });
+      // const cryptos = response.data.map((crypto: any) => ({
+      //   code: crypto.symbol,
+      //   name: crypto.name,
+      //   flag: `https://s2.coinmarketcap.com/static/img/coins/64x64/${crypto.id}.png`,
+      //   rate: crypto.quote.USD.price,
+      //   symbol: crypto.symbol,
+      //   description: `1 ${baseCurrency} = ${crypto.quote.USD.price}${crypto.symbol}`, // need to find out how to get the price when baseCurrency is not dollars
+      //   type: 'crypto',
+      // }));
       setCryptoCurrencies(cryptos);
     } catch (error) {
       console.error('Error fetching cryptocurrencies', error);
@@ -169,6 +231,68 @@ export default function App() {
                       (c) => c.code === currencyCode
                     );
                     if (!currency) return null;
+                    const baseCurrencyObj = allCurrencies.find(
+                      (c) => c.code === baseCurrency
+                    );
+                    const convertedAmount = baseCurrencyObj
+                      ? convertCurrency(
+                          parseFloat(amount) || 0,
+                          baseCurrencyObj,
+                          currency,
+                          baseCurrency
+                        )
+                      : null;
+                    return (
+                      <Draggable
+                        key={currency.code}
+                        draggableId={currency.code}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="flex items-center justify-between bg-gray-50 rounded-xl p-3"
+                          >
+                            <div className="flex items-center">
+                              {currency.type === 'crypto' ? (
+                                <img
+                                  src={currency.flag}
+                                  alt={currency.name}
+                                  className="w-6 h-6 mr-2"
+                                />
+                              ) : (
+                                <span className="mr-2">{currency.flag}</span>
+                              )}
+                              <span className="font-semibold">
+                                {currency.code}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="text-right">
+                                <div className="font-semibold">
+                                  {convertedAmount !== null
+                                    ? convertedAmount.toFixed(2)
+                                    : '0.00'}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {currency.description}
+                                </div>
+                              </div>
+                              <button className="ml-4 text-gray-400">⋮</button>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })}
+
+                  {/* {currencyList.map((currencyCode, index) => {
+                    const currency = allCurrencies.find(
+                      (c) => c.code === currencyCode
+                    );
+                    if (!currency) return null;
                     return (
                       <Draggable
                         key={currency.code}
@@ -215,7 +339,7 @@ export default function App() {
                         )}
                       </Draggable>
                     );
-                  })}
+                  })} */}
                   {currencyList.length === 0 && (
                     <div>
                       No currencies selected. Please add some currencies.

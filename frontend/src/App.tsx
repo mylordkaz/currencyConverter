@@ -45,19 +45,15 @@ function convertCurrency(
   try {
     let convertedAmount: number;
 
-    if (from.type === 'fiat' && to.type === 'fiat') {
-      convertedAmount = amount * (to.rate / from.rate);
-    } else if (from.type === 'crypto' && to.type === 'fiat') {
-      const cryptoInBase = amount * from.rate;
-      convertedAmount = cryptoInBase * to.rate;
+    if (from.type === 'crypto' && to.type === 'fiat') {
+      convertedAmount = amount * from.rate * to.rate;
     } else if (from.type === 'fiat' && to.type === 'crypto') {
-      const fiatInBase = amount / from.rate;
-      convertedAmount = fiatInBase / to.rate;
+      convertedAmount = amount / (from.rate * to.rate);
     } else if (from.type === 'crypto' && to.type === 'crypto') {
-      const fromInBase = amount * from.rate;
-      convertedAmount = fromInBase / to.rate;
+      convertedAmount = (amount * from.rate) / to.rate;
     } else {
-      throw new Error('Unknown currency types');
+      // both fiat
+      convertedAmount = (amount * to.rate) / from.rate;
     }
 
     return Number(convertedAmount.toFixed(6));
@@ -226,14 +222,62 @@ export default function App() {
                     const baseCurrencyObj = allCurrencies.find(
                       (c) => c.code === baseCurrency
                     );
-                    const convertedAmount = baseCurrencyObj
-                      ? convertCurrency(
-                          parseFloat(amount) || 0,
-                          baseCurrencyObj,
-                          currency,
-                          baseCurrency
-                        )
-                      : null;
+                    if (!baseCurrencyObj) return null;
+
+                    const convertedAmount = convertCurrency(
+                      parseFloat(amount) || 0,
+                      baseCurrencyObj,
+                      currency,
+                      baseCurrency
+                    );
+
+                    let description: string;
+                    if (baseCurrencyObj.type === 'crypto') {
+                      if (currency.type === 'fiat') {
+                        // For fiat when base is crypto
+                        if (
+                          convertedAmount !== null &&
+                          parseFloat(amount) !== 0
+                        ) {
+                          const rateForOneBTC =
+                            convertedAmount / parseFloat(amount);
+                          description = `1 ${baseCurrency} = ${rateForOneBTC.toFixed(
+                            2
+                          )} ${currency.code}`;
+                        } else {
+                          description = `Unable to calculate rate for ${baseCurrency} to ${currency.code}`;
+                        }
+                      } else if (currency.code === baseCurrency) {
+                        // For the base crypto currency itself
+                        description = `1 ${baseCurrency} = 1.000000 ${baseCurrency}`;
+                      } else {
+                        // For other cryptos when base is crypto
+                        if (
+                          convertedAmount !== null &&
+                          parseFloat(amount) !== 0
+                        ) {
+                          const rateForOneBTC =
+                            convertedAmount / parseFloat(amount);
+                          description = `1 ${baseCurrency} = ${(
+                            1 / rateForOneBTC
+                          ).toFixed(6)} ${currency.code}`;
+                        } else {
+                          description = `Unable to calculate rate for ${baseCurrency} to ${currency.code}`;
+                        }
+                      }
+                    } else {
+                      if (currency.type === 'fiat') {
+                        // For fiat when base is fiat
+                        description = `1 ${baseCurrency} = ${currency.rate.toFixed(
+                          2
+                        )} ${currency.code}`;
+                      } else {
+                        // For crypto when base is fiat
+                        description = `1 ${currency.code} = ${(
+                          1 / currency.rate
+                        ).toFixed(6)} ${baseCurrency}`;
+                      }
+                    }
                     return (
                       <Draggable
                         key={currency.code}
@@ -269,7 +313,7 @@ export default function App() {
                                     : '0.00'}
                                 </div>
                                 <div className="text-xs text-gray-500">
-                                  {currency.description}
+                                  {description}
                                 </div>
                               </div>
                               <button className="ml-4 text-gray-400">⋮</button>

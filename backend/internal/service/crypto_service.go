@@ -63,7 +63,7 @@ func (s *CryptoService) FetchCrypto() ([]models.CryptoCurrency, error) {
 	}
 	// Print the raw JSON response
 	fmt.Println("Raw JSON response: ")
-	fmt.Println(string(body))
+	// fmt.Println(string(body))
 
 	// Decode the JSON into the struct
 	var cryptoResponse models.CryptoResponse

@@ -79,9 +79,9 @@ export default function App() {
 
   const allCurrencies = [...fiatCurrencies, ...cryptoCurrencies];
 
-  console.log('all:', allCurrencies);
   useEffect(() => {
     fetchFiatCurrencies().then(() => fetchCryptoCurrencies());
+    console.log('baseCurrency: ', baseCurrency);
   }, [baseCurrency]);
 
   useEffect(() => {
@@ -90,8 +90,14 @@ export default function App() {
 
   const fetchFiatCurrencies = async () => {
     try {
+      const baseCurrencyObj = allCurrencies.find(
+        (c) => c.code === baseCurrency
+      );
+      const fetchBaseCurrencies =
+        baseCurrencyObj?.type === 'crypto' ? 'USD' : baseCurrency;
+
       const response = await axios.get(
-        `${apiURL}api/fiat?base=${baseCurrency}`
+        `${apiURL}api/fiat?base=${fetchBaseCurrencies}`
       );
 
       const rates = response.data.rates;
@@ -107,7 +113,7 @@ export default function App() {
           type: 'fiat',
         }));
       setFiatCurrencies(fiats);
-      setBaseCurrency(response.data.base);
+      //setBaseCurrency(response.data.base);
     } catch (error) {
       console.error('Error fetching currencies', error);
     }
@@ -119,14 +125,11 @@ export default function App() {
 
       const BaseRateUsd =
         fiatCurrencies.find((c) => c.code === baseCurrency)?.rate || 1;
-      console.log('BaserateUsd:', BaseRateUsd);
+
       const cryptos = response.data.map((crypto: any) => {
         const usdPrice = crypto.quote.USD.price;
         const basePrice =
           baseCurrency === 'USD' ? usdPrice : usdPrice * BaseRateUsd;
-
-        console.log('crypto USD price:', usdPrice);
-        console.log('crypto base price:', basePrice);
 
         return {
           code: crypto.symbol,
@@ -140,7 +143,6 @@ export default function App() {
           type: 'crypto',
         };
       });
-      console.log('cryptos:', cryptos);
       setCryptoCurrencies(cryptos);
     } catch (error) {
       console.error('Error fetching cryptocurrencies', error);

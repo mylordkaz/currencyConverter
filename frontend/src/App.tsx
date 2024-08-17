@@ -245,7 +245,7 @@ export default function App() {
           </div>
 
           <div className="w-full max-w-md bg-white rounded-3xl shadow-lg mt-6 p-6">
-            <h1 className="text-2xl font-bold mb-4">Fiat</h1>
+            <h1 className="text-2xl font-bold mb-4">My Currencies</h1>
 
             <Droppable droppableId="currency">
               {(provided) => (

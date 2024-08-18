@@ -152,13 +152,27 @@ export default function App() {
     try {
       const response = await axios.get(`${apiURL}api/crypto`);
 
+      const baseCurrencyObj = allCurrencies.find(
+        (c) => c.code === baseCurrency
+      );
       const BaseRateUsd =
-        fiatCurrencies.find((c) => c.code === baseCurrency)?.rate || 1;
+        // fiatCurrencies.find((c) => c.code === baseCurrency)?.rate || 1;
+        baseCurrencyObj?.rate || 1;
 
       const cryptos = response.data.map((crypto: any) => {
         const usdPrice = crypto.quote.USD.price;
-        const basePrice =
-          baseCurrency === 'USD' ? usdPrice : usdPrice * BaseRateUsd;
+
+        let basePrice: number;
+
+        // Calculate basePrice depending on whether baseCurrency is USD, another crypto, or fiat
+        if (baseCurrency === 'USD') {
+          basePrice = usdPrice;
+        } else if (baseCurrencyObj?.type === 'crypto') {
+          basePrice = usdPrice / BaseRateUsd;
+        } else {
+          basePrice = usdPrice * BaseRateUsd;
+        }
+        const reverseRate = 1 / basePrice;
 
         return {
           code: crypto.symbol,
@@ -166,9 +180,9 @@ export default function App() {
           flag: `https://s2.coinmarketcap.com/static/img/coins/64x64/${crypto.id}.png`,
           rate: basePrice,
           symbol: crypto.symbol,
-          description: `1 ${crypto.symbol} = ${basePrice.toFixed(
-            2
-          )} ${baseCurrency}`,
+          description: `1 ${baseCurrency} = ${reverseRate.toFixed(5)} ${
+            crypto.symbol
+          }`,
           type: 'crypto',
         };
       });

@@ -80,7 +80,12 @@ export default function App() {
   const allCurrencies = [...fiatCurrencies, ...cryptoCurrencies];
 
   useEffect(() => {
-    fetchFiatCurrencies().then(() => fetchCryptoCurrencies());
+    // fetchFiatCurrencies().then(() => fetchCryptoCurrencies());
+    const fetchCurrencies = async () => {
+      await fetchFiatCurrencies();
+      await fetchCryptoCurrencies();
+    };
+    fetchCurrencies();
     console.log('baseCurrency: ', baseCurrency);
   }, [baseCurrency]);
 
@@ -113,7 +118,7 @@ export default function App() {
             baseCurrencyObj?.type === 'crypto' &&
             fetchBaseCurrencies === 'USD'
           ) {
-            const usdToCryptoRate = 1 * baseCurrencyObj.rate; // Assuming baseCurrencyObj has a rate property
+            const usdToCryptoRate = baseCurrencyObj.rate; // Assuming baseCurrencyObj has a rate property
             const adjustedRate = rate * usdToCryptoRate;
             description = `1 ${baseCurrency} = ${adjustedRate.toFixed(
               2

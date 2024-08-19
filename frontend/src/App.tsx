@@ -130,19 +130,8 @@ export default function App() {
             type: 'fiat',
           };
         });
-      // const fiats: Currency[] = currencyCodes
-      //   .filter((code) => code in rates)
-      //   .map((code) => ({
-      //     code,
-      //     name: currencyInfo[code].name,
-      //     flag: getFlagEmoji(code),
-      //     rate: rates[code],
-      //     symbol: currencyInfo[code].symbol,
-      //     description: `1 ${baseCurrency} = ${rates[code]}${code}`,
-      //     type: 'fiat',
-      //   }));
+
       setFiatCurrencies(fiats);
-      // setBaseCurrency(response.data.base);
     } catch (error) {
       console.error('Error fetching currencies', error);
     }

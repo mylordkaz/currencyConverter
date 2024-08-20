@@ -98,8 +98,8 @@ export default function App() {
       const baseCurrencyObj = allCurrencies.find(
         (c) => c.code === baseCurrency
       );
-      const fetchBaseCurrencies =
-        baseCurrencyObj?.type === 'crypto' ? 'USD' : baseCurrency;
+      const fetchBaseCurrencies = 'USD';
+      //baseCurrencyObj?.type === 'crypto' ? 'USD' : baseCurrency;
 
       const response = await axios.get(
         `${apiURL}api/fiat?base=${fetchBaseCurrencies}`
@@ -110,26 +110,27 @@ export default function App() {
       const fiats: Currency[] = currencyCodes
         .filter((code) => code in rates)
         .map((code) => {
-          const rate = rates[code];
+          let rate = rates[code];
           let description = `1 ${fetchBaseCurrencies} = ${rate}${code}`;
 
           // If base currency is crypto, adjust only the description
-          if (
-            baseCurrencyObj?.type === 'crypto' &&
-            fetchBaseCurrencies === 'USD'
-          ) {
-            const usdToCryptoRate = baseCurrencyObj.rate; // Assuming baseCurrencyObj has a rate property
-            const adjustedRate = rate * usdToCryptoRate;
-            description = `1 ${baseCurrency} = ${adjustedRate.toFixed(
-              2
-            )}${code}`;
+          if (baseCurrencyObj?.type === 'crypto') {
+            const cryptoToUsdRate = baseCurrencyObj.rate;
+            rate = rate * cryptoToUsdRate;
+            description = `1 ${baseCurrency} = ${rate.toFixed(4)} ${code}`;
+          } else if (baseCurrency !== 'USD') {
+            const baseToUsdRate = 1 / rates[baseCurrency];
+            rate = rate * baseToUsdRate;
+            description = `1 ${baseCurrency} = ${rate.toFixed(2)} ${code}`;
+          } else {
+            description = `1 ${baseCurrency} = ${rate.toFixed(2)} ${code}`;
           }
 
           return {
             code,
             name: currencyInfo[code].name,
             flag: getFlagEmoji(code),
-            rate, // Keep the original rate
+            rate,
             symbol: currencyInfo[code].symbol,
             description,
             type: 'fiat',

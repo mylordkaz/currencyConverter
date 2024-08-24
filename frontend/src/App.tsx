@@ -167,14 +167,11 @@ export default function App() {
   };
 
   const handleOnDragEnd = (result: DropResult) => {
-    if (!result.destination) {
-      return;
-    }
+    if (!result.destination) return;
 
     const items = Array.from(currencyList);
     const [reorderItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderItem);
-
     setCurrencyList(items);
   };
 
@@ -183,7 +180,7 @@ export default function App() {
       <div className=" min-h-screen bg-gradient-to-b from-blue-400 to-blue-900 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <h1 className="text-4xl font-bold mb-8 text-center text-black">
-            Currency Converter
+            Tsukakan
           </h1>
 
           <div className="space-y-4">

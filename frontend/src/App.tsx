@@ -80,13 +80,13 @@ export default function App() {
   const allCurrencies = [...fiatCurrencies, ...cryptoCurrencies];
 
   useEffect(() => {
-    // fetchFiatCurrencies().then(() => fetchCryptoCurrencies());
     const fetchCurrencies = async () => {
       await fetchFiatCurrencies();
       await fetchCryptoCurrencies();
     };
     fetchCurrencies();
     console.log('baseCurrency: ', baseCurrency);
+    console.log('allCurrencies list:', allCurrencies);
   }, [baseCurrency]);
 
   useEffect(() => {
@@ -95,15 +95,7 @@ export default function App() {
 
   const fetchFiatCurrencies = async () => {
     try {
-      const baseCurrencyObj = allCurrencies.find(
-        (c) => c.code === baseCurrency
-      );
-      const fetchBaseCurrencies = 'USD';
-      //baseCurrencyObj?.type === 'crypto' ? 'USD' : baseCurrency;
-
-      const response = await axios.get(
-        `${apiURL}api/fiat?base=${fetchBaseCurrencies}`
-      );
+      const response = await axios.get(`${apiURL}api/fiat?base=USD`);
 
       const rates = response.data.rates;
 
@@ -111,20 +103,6 @@ export default function App() {
         .filter((code) => code in rates)
         .map((code) => {
           let rate = rates[code];
-          let description = `1 ${fetchBaseCurrencies} = ${rate}${code}`;
-
-          // If base currency is crypto, adjust only the description
-          if (baseCurrencyObj?.type === 'crypto') {
-            const cryptoToUsdRate = baseCurrencyObj.rate;
-            rate = rate * cryptoToUsdRate;
-            description = `1 ${baseCurrency} = ${rate.toFixed(4)} ${code}`;
-          } else if (baseCurrency !== 'USD') {
-            const baseToUsdRate = 1 / rates[baseCurrency];
-            rate = rate * baseToUsdRate;
-            description = `1 ${baseCurrency} = ${rate.toFixed(2)} ${code}`;
-          } else {
-            description = `1 ${baseCurrency} = ${rate.toFixed(2)} ${code}`;
-          }
 
           return {
             code,
@@ -132,7 +110,7 @@ export default function App() {
             flag: getFlagEmoji(code),
             rate,
             symbol: currencyInfo[code].symbol,
-            description,
+            description: `1 USD = ${rate} ${code}`,
             type: 'fiat',
           };
         });
@@ -147,40 +125,17 @@ export default function App() {
     try {
       const response = await axios.get(`${apiURL}api/crypto`);
 
-      const baseCurrencyObj = allCurrencies.find(
-        (c) => c.code === baseCurrency
-      );
-      const BaseRateUsd =
-        // fiatCurrencies.find((c) => c.code === baseCurrency)?.rate || 1;
-        baseCurrencyObj?.rate || 1;
-
-      const cryptos = response.data.map((crypto: any) => {
-        const usdPrice = crypto.quote.USD.price;
-
-        let basePrice: number;
-
-        // Calculate basePrice depending on whether baseCurrency is USD, another crypto, or fiat
-        if (baseCurrency === 'USD') {
-          basePrice = usdPrice;
-        } else if (baseCurrencyObj?.type === 'crypto') {
-          basePrice = usdPrice / BaseRateUsd;
-        } else {
-          basePrice = usdPrice * BaseRateUsd;
-        }
-        const reverseRate = 1 / basePrice;
-
-        return {
-          code: crypto.symbol,
-          name: crypto.name,
-          flag: `https://s2.coinmarketcap.com/static/img/coins/64x64/${crypto.id}.png`,
-          rate: basePrice,
-          symbol: crypto.symbol,
-          description: `1 ${baseCurrency} = ${reverseRate.toFixed(5)} ${
-            crypto.symbol
-          }`,
-          type: 'crypto',
-        };
-      });
+      const cryptos: Currency[] = response.data.map((crypto: any) => ({
+        code: crypto.symbol,
+        name: crypto.name,
+        flag: `https://s2.coinmarketcap.com/static/img/coins/64x64/${crypto.id}.png`,
+        rate: crypto.quote.USD.price,
+        symbol: crypto.symbol,
+        description: `1 USD = ${(1 / crypto.quote.USD.price).toFixed(5)} ${
+          crypto.symbol
+        }`,
+        type: 'crypto',
+      }));
       setCryptoCurrencies(cryptos);
     } catch (error) {
       console.error('Error fetching cryptocurrencies', error);

@@ -14,7 +14,7 @@ interface Currency {
   code: string;
   flag: string;
   rate: number;
-  description: string;
+  description?: string;
   name: string;
   symbol: string;
   type: 'fiat' | 'crypto';
@@ -102,15 +102,13 @@ export default function App() {
       const fiats: Currency[] = currencyCodes
         .filter((code) => code in rates)
         .map((code) => {
-          let rate = rates[code];
-
           return {
             code,
             name: currencyInfo[code].name,
             flag: getFlagEmoji(code),
             rate: rates[code],
             symbol: currencyInfo[code].symbol,
-            description: `1 USD = ${rate} ${code}`,
+
             type: 'fiat',
           };
         });
@@ -131,9 +129,7 @@ export default function App() {
         flag: `https://s2.coinmarketcap.com/static/img/coins/64x64/${crypto.id}.png`,
         rate: crypto.quote.USD.price,
         symbol: crypto.symbol,
-        description: `1 USD = ${(1 / crypto.quote.USD.price).toFixed(5)} ${
-          crypto.symbol
-        }`,
+
         type: 'crypto',
       }));
       setCryptoCurrencies(cryptos);
@@ -141,31 +137,30 @@ export default function App() {
       console.error('Error fetching cryptocurrencies', error);
     }
   };
-  const calculateDescription = (
-    currency: Currency,
-    baseCurrency: Currency
-  ): string => {
-    if (currency.code === baseCurrency.code) {
-      return `1 ${currency.code} = 1 ${baseCurrency.code}`;
-    }
-
-    let rate: number;
-
-    if (baseCurrency.type === 'fiat' && currency.type === 'fiat') {
-      // Both are fiat, convert through USD
-      rate = baseCurrency.rate / currency.rate;
-    } else if (baseCurrency.type === 'crypto' && currency.type === 'fiat') {
-      // Base is crypto, currency is fiat
-      rate = (1 / baseCurrency.rate) * currency.rate;
-    } else if (baseCurrency.type === 'fiat' && currency.type === 'crypto') {
-      // Base is fiat, currency is crypto
-      rate = baseCurrency.rate * currency.rate;
+  const getDescriptionRate = (currency: Currency, baseCurrency: Currency) => {
+    if (baseCurrency.type === 'fiat') {
+      if (currency.type === 'fiat') {
+        return currency.rate / baseCurrency.rate;
+      } else {
+        return 1 / (currency.rate * baseCurrency.rate);
+      }
     } else {
-      // Both are crypto
-      rate = baseCurrency.rate / currency.rate;
+      if (currency.type === 'fiat') {
+        return baseCurrency.rate * currency.rate;
+      } else {
+        return baseCurrency.rate / currency.rate;
+      }
     }
+  };
+  const getDescription = (currency: Currency, baseCurrency: Currency) => {
+    if (baseCurrency.code === currency.code)
+      return `1 ${currency.code} = 1 ${baseCurrency.code}`;
 
-    return `1 ${baseCurrency.code} = ${rate.toFixed(6)} ${currency.code}`;
+    const descriptionRate = getDescriptionRate(currency, baseCurrency);
+
+    return `1 ${baseCurrency.code} = ${descriptionRate?.toFixed(4)} ${
+      currency.code
+    }`;
   };
 
   const getFlagEmoji = (countryCode: string) => {
@@ -263,7 +258,7 @@ export default function App() {
 
                     // Directly use the description field from the currency object
                     const description =
-                      currency.description ||
+                      getDescription(currency, baseCurrencyObj) ||
                       `No description available for ${currencyCode}`;
 
                     return (

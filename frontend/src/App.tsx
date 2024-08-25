@@ -14,7 +14,6 @@ interface Currency {
   code: string;
   flag: string;
   rate: number;
-  description?: string;
   name: string;
   symbol: string;
   type: 'fiat' | 'crypto';

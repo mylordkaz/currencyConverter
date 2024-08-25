@@ -108,7 +108,7 @@ export default function App() {
             code,
             name: currencyInfo[code].name,
             flag: getFlagEmoji(code),
-            rate,
+            rate: rates[code],
             symbol: currencyInfo[code].symbol,
             description: `1 USD = ${rate} ${code}`,
             type: 'fiat',
@@ -141,6 +141,32 @@ export default function App() {
       console.error('Error fetching cryptocurrencies', error);
     }
   };
+  const calculateDescription = (
+    currency: Currency,
+    baseCurrency: Currency
+  ): string => {
+    if (currency.code === baseCurrency.code) {
+      return `1 ${currency.code} = 1 ${baseCurrency.code}`;
+    }
+
+    let rate: number;
+
+    if (baseCurrency.type === 'fiat' && currency.type === 'fiat') {
+      // Both are fiat, convert through USD
+      rate = baseCurrency.rate / currency.rate;
+    } else if (baseCurrency.type === 'crypto' && currency.type === 'fiat') {
+      // Base is crypto, currency is fiat
+      rate = (1 / baseCurrency.rate) * currency.rate;
+    } else if (baseCurrency.type === 'fiat' && currency.type === 'crypto') {
+      // Base is fiat, currency is crypto
+      rate = baseCurrency.rate * currency.rate;
+    } else {
+      // Both are crypto
+      rate = baseCurrency.rate / currency.rate;
+    }
+
+    return `1 ${baseCurrency.code} = ${rate.toFixed(6)} ${currency.code}`;
+  };
 
   const getFlagEmoji = (countryCode: string) => {
     const codePoints = countryCode
@@ -157,7 +183,6 @@ export default function App() {
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
   };
-
   const handleCurrenciesList = (currencyCode: string) => {
     setCurrencyList((prev) =>
       prev.includes(currencyCode)

@@ -13,7 +13,7 @@ export default function Index() {
       <SafeAreaView style={tw`flex-1`}>
         <View style={tw`flex-1 p-4`}>
           <Text style={tw`text-4xl font-bold mb-8 text-center text-black`}>
-            Tsukakan
+            Tsukakan desu
           </Text>
           <CurrencySelector />
           <CurrencyList />

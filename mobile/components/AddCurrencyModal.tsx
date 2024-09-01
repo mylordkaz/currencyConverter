@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
+  Image,
 } from 'react-native';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';
@@ -40,7 +41,11 @@ const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
         onClose();
       }}
     >
-      <Text style={tw`text-2xl mr-3`}>{item.flag}</Text>
+      {item.type === 'crypto' ? (
+        <Image source={{ uri: item.flag }} style={tw`w-6 h-6 mr-3`} />
+      ) : (
+        <Text style={tw`text-2xl mr-3`}>{item.flag}</Text>
+      )}
       <Text style={tw`text-lg`}>
         {item.name} ({item.code})
       </Text>

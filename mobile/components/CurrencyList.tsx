@@ -14,21 +14,25 @@ import { Currency } from '@/constants/type';
 
 interface CurrencyListProps {
   currencies: Currency[];
+  selectedCurrencyCodes: string[];
   baseCurrency: string;
   baseAmount: number;
   isLoading: boolean;
   error: string | null;
   onAddCurrency: (currency: Currency) => void;
+  onRemoveCurrency: (currencyCode: string) => void;
   availableCurrencies: Currency[];
 }
 
 const CurrencyList: React.FC<CurrencyListProps> = ({
   currencies,
+  selectedCurrencyCodes,
   baseCurrency,
   baseAmount,
   isLoading,
   error,
   onAddCurrency,
+  onRemoveCurrency,
   availableCurrencies,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -116,6 +120,9 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   }
 
   const baseCurrencyData = currencies.find((c) => c.code === baseCurrency);
+  const selectedCurrencies = currencies.filter((c) =>
+    selectedCurrencyCodes.includes(c.code)
+  );
 
   if (!baseCurrencyData) {
     return <Text style={tw`text-red-500`}>Base currency not found</Text>;
@@ -125,7 +132,7 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
     <View style={tw`bg-white rounded-3xl p-6 mt-6`}>
       <Text style={tw`text-2xl font-bold mb-4`}>Converted Amounts</Text>
       <ScrollView>
-        {currencies.map((currency) => {
+        {selectedCurrencies.map((currency) => {
           const convertedAmount = convertCurrency(
             baseAmount,
             baseCurrencyData,

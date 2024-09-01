@@ -1,16 +1,7 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
-
-interface Currency {
-  code: string;
-  name: string;
-  flag: string;
-  rate: number;
-  symbol: string;
-  type: 'crypto' | 'fiat';
-}
-
-const apiURL = '';
+import { API_URL } from '@env';
+import { useEffect, useState, useTransition } from 'react';
+import { Currency } from '@/constants/type';
 
 const currencyInfo: Record<string, { name: string; symbol: string }> = {
   USD: { name: 'United States Dollar', symbol: '$' },
@@ -41,10 +32,11 @@ const useCurrencies = () => {
   const [fiatCurrencies, setFiatCurrencies] = useState<Currency[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   const fetchCrypto = async () => {
     try {
-      const response = await axios.get(`${apiURL}api/crypto`);
+      const response = await axios.get(`${API_URL}api/crypto`);
       const cryptos: Currency[] = response.data.map((crypto: any) => ({
         code: crypto.symbol,
         name: crypto.name,
@@ -53,7 +45,9 @@ const useCurrencies = () => {
         symbol: crypto.symbol,
         type: 'crypto',
       }));
-      setCryptoCurrencies(cryptos);
+      startTransition(() => {
+        setCryptoCurrencies(cryptos);
+      });
     } catch (error) {
       console.error('Error fetching crypto currencies', error);
       setError('Failed to fetch crypto currencies');
@@ -61,7 +55,11 @@ const useCurrencies = () => {
   };
   const fetchFiat = async () => {
     try {
-      const response = await axios.get(`${apiURL}api/fiat?base=USD`);
+      console.log(
+        'Fetching fiat currencies from:',
+        `${API_URL}api/fiat?base=USD`
+      );
+      const response = await axios.get(`${API_URL}api/fiat?base=USD`);
       const rates = response.data.rates;
       const fiats: Currency[] = currencyCodes
         .filter((code) => code in rates)
@@ -75,10 +73,17 @@ const useCurrencies = () => {
             type: 'fiat',
           };
         });
-      setFiatCurrencies(fiats);
+      startTransition(() => {
+        setFiatCurrencies(fiats);
+      });
     } catch (error) {
       console.error('Error fetching fiats', error);
       setError('Failed to fetch fiat currencies');
+      if (axios.isAxiosError(error)) {
+        console.error('Request config:', error.config);
+        console.error('Response status:', error.response?.status);
+        console.error('Response data:', error.response?.data);
+      }
     }
   };
 
@@ -91,7 +96,9 @@ const useCurrencies = () => {
         console.error('Error fetching data', error);
         setError('Failed to fetch currency data');
       } finally {
-        setIsLoading(false);
+        startTransition(() => {
+          setIsLoading(false);
+        });
       }
     };
 

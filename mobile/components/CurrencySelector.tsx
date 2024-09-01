@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';
@@ -37,7 +38,11 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
         setIsDropdownVisible(false);
       }}
     >
-      <Text style={tw`text-2xl mr-3`}>{item.flag}</Text>
+      {item.type === 'crypto' ? (
+        <Image source={{ uri: item.flag }} style={tw`w-6 h-6 mr-3`} />
+      ) : (
+        <Text style={tw`text-2xl mr-3`}>{item.flag}</Text>
+      )}
       <Text style={tw`text-lg`}>
         {item.name} ({item.code})
       </Text>
@@ -51,7 +56,14 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
           setIsDropdownVisible(true);
         }}
       >
-        <Text style={tw`text-white mr-2`}>{selectedCurrencyData?.flag}</Text>
+        {selectedCurrencyData?.type === 'crypto' ? (
+          <Image
+            source={{ uri: selectedCurrencyData.flag }}
+            style={tw`w-6 h-6 mr-2`}
+          />
+        ) : (
+          <Text style={tw`text-white mr-2`}>{selectedCurrencyData?.flag}</Text>
+        )}
         <Text style={tw`text-white font-bold`}>{selectedCurrency}</Text>
         <Text style={tw`text-white ml-2`}>▼</Text>
       </TouchableOpacity>

@@ -36,7 +36,9 @@ const useCurrencies = () => {
 
   const fetchCrypto = async () => {
     try {
+      console.log('Fetching crypto currencies from:', `${API_URL}api/crypto`);
       const response = await axios.get(`${API_URL}api/crypto`);
+      console.log('Crypto data:', response.data);
       const cryptos: Currency[] = response.data.map((crypto: any) => ({
         code: crypto.symbol,
         name: crypto.name,
@@ -91,7 +93,16 @@ const useCurrencies = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        await Promise.all([fetchCrypto(), fetchFiat()]);
+        const cryptoPromise = fetchCrypto().catch((error) => {
+          console.error('Crypto fetch error:', error);
+          return null;
+        });
+        const fiatPromise = fetchFiat().catch((error) => {
+          console.error('Fiat fetch error:', error);
+          return null;
+        });
+
+        await Promise.all([cryptoPromise, fiatPromise]);
       } catch (error) {
         console.error('Error fetching data', error);
         setError('Failed to fetch currency data');

@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import tw from 'twrnc';
 import AddCurrencyModal from './AddCurrencyModal';
@@ -125,15 +126,25 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
       <Text style={tw`text-2xl font-bold mb-4`}>Converted Amounts</Text>
       <ScrollView>
         {currencies.map((currency) => {
-          const convertedAmount =
-            (baseAmount / baseCurrencyData.rate) * currency.rate;
+          const convertedAmount = convertCurrency(
+            baseAmount,
+            baseCurrencyData,
+            currency
+          );
           return (
             <View
               key={currency.code}
               style={tw`flex-row items-center justify-between py-3 border-b border-gray-100`}
             >
               <View style={tw`flex-row items-center`}>
-                <Text style={tw`mr-2 text-lg`}>{currency.flag}</Text>
+                {currency.type === 'crypto' ? (
+                  <Image
+                    source={{ uri: currency.flag }}
+                    style={tw`w-6 h-6 mr-2`}
+                  />
+                ) : (
+                  <Text style={tw`mr-2 text-lg`}>{currency.flag}</Text>
+                )}
                 <Text style={tw`font-semibold`}>{currency.code}</Text>
               </View>
               <View style={tw`items-end`}>

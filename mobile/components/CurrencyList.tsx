@@ -134,12 +134,6 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   return (
     <View style={tw`bg-white rounded-3xl p-6 mt-6`}>
       <Text style={tw`text-2xl font-bold mb-4`}>My currencies</Text>
-      {/* <TouchableOpacity
-        style={tw`absolute top-4 right-4 bg-black rounded-full w-12 h-12 items-center justify-center z-10`}
-        onPress={() => setIsModalVisible(true)}
-      >
-        <Text style={tw`text-white font-bold text-2xl`}>+</Text>
-      </TouchableOpacity> */}
       <ScrollView>
         {selectedCurrencies.map((currency) => {
           const convertedAmount = convertCurrency(

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FlatList,
   Modal,
@@ -27,9 +27,22 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
   onAmountChange,
 }) => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredCurrencies, setFilteredCurrencies] = useState(currencies);
+
   const selectedCurrencyData = currencies.find(
     (c) => c.code === selectedCurrency
   );
+
+  useEffect(() => {
+    const filtered = currencies.filter(
+      (currency) =>
+        currency.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        currency.code.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredCurrencies(filtered);
+  }, [searchQuery, currencies]);
+
   const renderCurrencyItem = ({ item }: { item: Currency }) => (
     <TouchableOpacity
       style={tw`flex-row items-center p-3 border-b border-gray-200`}
@@ -89,6 +102,12 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
         <View style={tw`flex-1 bg-white mt-20`}>
           <View style={tw`p-4 border-b border-gray-200`}>
             <Text style={tw`text-2xl font-bold mb-2`}>Select Currency</Text>
+            <TextInput
+              style={tw`bg-gray-100 p-2 rounded-md`}
+              placeholder="Search Currencies"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
           </View>
           <FlatList
             data={currencies}

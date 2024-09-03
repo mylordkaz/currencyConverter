@@ -110,7 +110,7 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
             />
           </View>
           <FlatList
-            data={currencies}
+            data={filteredCurrencies}
             renderItem={renderCurrencyItem}
             keyExtractor={(item) => item.code}
           />

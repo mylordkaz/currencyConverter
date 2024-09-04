@@ -1,7 +1,3 @@
-import DraggableFlatList, {
-  RenderItemParams,
-} from 'react-native-draggable-flatlist';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import React, { useState } from 'react';
 import {
   View,

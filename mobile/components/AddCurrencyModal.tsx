@@ -1,5 +1,5 @@
 // components/AddCurrencyModal.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   View,
@@ -8,6 +8,7 @@ import {
   FlatList,
   TextInput,
   Image,
+  Dimensions,
 } from 'react-native';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';
@@ -19,6 +20,9 @@ interface AddCurrencyModalProps {
   availableCurrencies: Currency[];
 }
 
+const { height: windowHeight } = Dimensions.get('window');
+const MODAL_HEIGHT = windowHeight * 0.65;
+
 const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
   isVisible,
   onClose,
@@ -26,6 +30,12 @@ const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
   availableCurrencies,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (!isVisible) {
+      setSearchQuery('');
+    }
+  }, [isVisible]);
 
   const filteredCurrencies = availableCurrencies.filter(
     (currency) =>
@@ -54,27 +64,29 @@ const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
 
   return (
     <Modal visible={isVisible} animationType="slide" transparent>
-      <View style={tw`flex-1 bg-white mt-20`}>
-        <View style={tw`p-4 border-b border-gray-200`}>
-          <Text style={tw`text-2xl font-bold mb-2`}>Add Currency</Text>
-          <TextInput
-            style={tw`bg-gray-100 p-2 rounded`}
-            placeholder="Search currencies..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
+      <View style={tw`flex-1 justify-end `}>
+        <TouchableOpacity style={tw`flex-1`} onPress={onClose} />
+        <View
+          style={tw.style('bg-white rounded-t-3xl', { height: MODAL_HEIGHT })}
+        >
+          <View
+            style={tw`w-10 h-1 bg-gray-300 rounded-full mx-auto mt-2 mb-2`}
+          />
+          <View style={tw`p-4 border-b border-gray-200`}>
+            <Text style={tw`text-2xl font-bold mb-2`}>Add Currency</Text>
+            <TextInput
+              style={tw`bg-gray-100 p-2 rounded`}
+              placeholder="Search currencies..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          <FlatList
+            data={filteredCurrencies}
+            renderItem={renderCurrencyItem}
+            keyExtractor={(item) => item.code}
           />
         </View>
-        <FlatList
-          data={filteredCurrencies}
-          renderItem={renderCurrencyItem}
-          keyExtractor={(item) => item.code}
-        />
-        <TouchableOpacity
-          style={tw`bg-blue-500 p-4 m-4 rounded`}
-          onPress={onClose}
-        >
-          <Text style={tw`text-white text-center font-bold`}>Close</Text>
-        </TouchableOpacity>
       </View>
     </Modal>
   );

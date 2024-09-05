@@ -98,7 +98,6 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
         const amountInUsd = amount * from.rate;
         convertedAmount = amountInUsd / to.rate;
       } else {
-        // both fiat
         const amountInUsd = amount / from.rate;
         convertedAmount = amountInUsd * to.rate;
       }

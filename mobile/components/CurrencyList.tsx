@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  ActivityIndicator,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, Image } from 'react-native';
 import tw from 'twrnc';
-import AddCurrencyModal from './AddCurrencyModal';
 import { Currency } from '@/constants/type';
 
 interface CurrencyListProps {
@@ -34,8 +26,6 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   onRemoveCurrency,
   availableCurrencies,
 }) => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-
   const getDescriptionRate = (
     currency: Currency,
     baseCurrencyObj: Currency
@@ -127,9 +117,9 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   }
 
   return (
-    <View style={tw`bg-white rounded-3xl p-6 mt-6`}>
+    <View style={tw`bg-white rounded-3xl p-6 flex-1`}>
       <Text style={tw`text-2xl font-bold mb-4`}>My currencies</Text>
-      <ScrollView>
+      <ScrollView style={tw`flex-1`}>
         {selectedCurrencies.map((currency) => {
           const convertedAmount = convertCurrency(
             baseAmount,
@@ -167,7 +157,7 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
           );
         })}
       </ScrollView>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={tw`absolute bottom-4 right-4 bg-black rounded-full w-12 h-12 items-center justify-center z-10`}
         onPress={() => setIsModalVisible(true)}
       >
@@ -178,7 +168,7 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
         onClose={() => setIsModalVisible(false)}
         onAddCurrency={onAddCurrency}
         availableCurrencies={availableCurrencies}
-      />
+      /> */}
     </View>
   );
 };

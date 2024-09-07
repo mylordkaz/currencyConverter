@@ -1,5 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SafeAreaView, Text, View } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import tw from 'twrnc';
 import CurrencySelector from '@/components/CurrencySelector';
@@ -7,10 +13,12 @@ import CurrencyList from '@/components/CurrencyList';
 import useCurrencies from '@/hooks/useCurrencies';
 import { useEffect, useState } from 'react';
 import { Currency } from '@/constants/type';
+import AddCurrencyModal from '@/components/AddCurrencyModal';
 
 export default function Index() {
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [amount, setAmount] = useState('');
+  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([
     'USD',
   ]);
@@ -68,34 +76,47 @@ export default function Index() {
   };
 
   return (
-    <LinearGradient
-      colors={['#60A5FA', '#2563EB']} // Light blue to darker blue
-      style={tw`flex-1`}
-    >
+    <LinearGradient colors={['#60A5FA', '#2563EB']} style={tw`flex-1`}>
       <SafeAreaView style={tw`flex-1`}>
-        <View style={tw`flex-1 p-4`}>
-          <Text style={tw`text-4xl font-bold mb-8 text-center text-black`}>
-            Tsukakan
-          </Text>
-          <CurrencySelector
-            currencies={allCurrencies}
-            selectedCurrency={selectedCurrency}
-            onCurrencyChange={handleCurrencyChange}
-            amount={amount}
-            onAmountChange={handleAmountChange}
-          />
-          <CurrencyList
-            currencies={allCurrencies}
-            selectedCurrencyCodes={selectedCurrencies}
-            baseCurrency={selectedCurrency}
-            baseAmount={parseFloat(amount) || 0}
-            isLoading={isLoading}
-            error={error}
-            onAddCurrency={handleAddCurrency}
-            onRemoveCurrency={handleRemoveCurrency}
-            availableCurrencies={allCurrencies}
-          />
-        </View>
+        <ScrollView contentContainerStyle={tw`flex-grow`}>
+          <View style={tw`flex-1 p-4`}>
+            <Text style={tw`text-4xl font-bold mb-8 text-center text-black`}>
+              Tsukakan
+            </Text>
+            <CurrencySelector
+              currencies={allCurrencies}
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={handleCurrencyChange}
+              amount={amount}
+              onAmountChange={handleAmountChange}
+            />
+            <View style={tw`flex-1`}>
+              <CurrencyList
+                currencies={allCurrencies}
+                selectedCurrencyCodes={selectedCurrencies}
+                baseCurrency={selectedCurrency}
+                baseAmount={parseFloat(amount) || 0}
+                isLoading={isLoading}
+                error={error}
+                onAddCurrency={handleAddCurrency}
+                onRemoveCurrency={handleRemoveCurrency}
+                availableCurrencies={allCurrencies}
+              />
+            </View>
+          </View>
+        </ScrollView>
+        <TouchableOpacity
+          style={tw`absolute bottom-8 right-8 bg-black rounded-full w-16 h-16 items-center justify-center z-10`}
+          onPress={() => setIsModalVisible(true)}
+        >
+          <Text style={tw`text-white font-bold text-3xl`}>+</Text>
+        </TouchableOpacity>
+        <AddCurrencyModal
+          isVisible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          onAddCurrency={handleAddCurrency}
+          availableCurrencies={allCurrencies}
+        />
       </SafeAreaView>
     </LinearGradient>
   );

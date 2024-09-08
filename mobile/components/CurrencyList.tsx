@@ -22,9 +22,6 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   baseAmount,
   isLoading,
   error,
-  onAddCurrency,
-  onRemoveCurrency,
-  availableCurrencies,
 }) => {
   const getDescriptionRate = (
     currency: Currency,

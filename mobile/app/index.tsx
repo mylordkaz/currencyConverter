@@ -12,7 +12,6 @@ import CurrencySelector from '@/components/CurrencySelector';
 import CurrencyList from '@/components/CurrencyList';
 import useCurrencies from '@/hooks/useCurrencies';
 import { useEffect, useState } from 'react';
-import { Currency } from '@/constants/type';
 import AddCurrencyModal from '@/components/AddCurrencyModal';
 
 export default function Index() {

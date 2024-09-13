@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Image } from 'react-native';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';

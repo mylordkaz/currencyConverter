@@ -90,6 +90,12 @@ const useCurrencies = () => {
     }
   };
 
+  const sortCurrencies = (currencies: Currency[], order: string[]) => {
+    return order
+      .map((code) => currencies.find((currency) => currency.code === code))
+      .filter(Boolean) as Currency[];
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -116,7 +122,7 @@ const useCurrencies = () => {
 
     fetchData();
   }, []);
-  return { cryptoCurrencies, fiatCurrencies, isLoading, error };
+  return { cryptoCurrencies, fiatCurrencies, sortCurrencies, isLoading, error };
 };
 
 export default useCurrencies;

@@ -1,8 +1,19 @@
-import { View, Text, ScrollView, ActivityIndicator, Image } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import { RectButton, Swipeable } from 'react-native-gesture-handler';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useMemo, useState } from 'react';
+import DraggableFlatList, {
+  RenderItemParams,
+} from 'react-native-draggable-flatlist';
 
 interface CurrencyListProps {
   currencies: Currency[];
@@ -12,6 +23,7 @@ interface CurrencyListProps {
   isLoading: boolean;
   error: string | null;
   onRemoveCurrency: (currencyCode: string) => void;
+  onReorderCurrencies: (newOrder: string[]) => void;
   availableCurrencies: Currency[];
 }
 
@@ -23,7 +35,20 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   isLoading,
   error,
   onRemoveCurrency,
+  onReorderCurrencies,
 }) => {
+  const orderedCurrencies = useMemo(() => {
+    return selectedCurrencyCodes
+      .map((code) => currencies.find((c) => c.code === code))
+      .filter(Boolean) as Currency[];
+  }, [currencies, selectedCurrencyCodes]);
+  const [data, setData] = useState<Currency[]>(
+    currencies.filter((c) => selectedCurrencyCodes.includes(c.code))
+  );
+  useEffect(() => {
+    setData(orderedCurrencies);
+  }, [orderedCurrencies]);
+
   const getDescriptionRate = (
     currency: Currency,
     baseCurrencyObj: Currency
@@ -107,6 +132,44 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
       </RectButton>
     );
   };
+  const renderItem = ({ item, drag, isActive }: RenderItemParams<Currency>) => {
+    const baseCurrencyData = currencies.find((c) => c.code === baseCurrency);
+    const convertedAmount = convertCurrency(
+      baseAmount,
+      baseCurrencyData!,
+      item
+    );
+
+    return (
+      <Swipeable renderRightActions={() => renderRightActionBtn(item.code)}>
+        <TouchableOpacity
+          style={[
+            tw`flex-row items-center justify-between py-3 border-b border-gray-100`,
+            isActive ? tw`bg-gray-200` : tw`bg-white`,
+          ]}
+          onLongPress={drag} // Start dragging when long-pressed
+        >
+          <View style={tw`flex-row items-center`}>
+            {item.type === 'crypto' ? (
+              <Image source={{ uri: item.flag }} style={tw`w-6 h-6 mr-2`} />
+            ) : (
+              <Text style={tw`mr-2 text-lg`}>{item.flag}</Text>
+            )}
+            <Text style={tw`font-semibold`}>{item.code}</Text>
+          </View>
+          <View style={tw`items-end`}>
+            <Text style={tw`font-semibold`}>
+              {item.symbol}
+              {convertedAmount !== null ? convertedAmount.toFixed(2) : '0.00'}
+            </Text>
+            <Text style={tw`text-xs text-gray-500`}>
+              {getDescription(item, baseCurrencyData!)}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
+    );
+  };
 
   if (isLoading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -117,9 +180,6 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   }
 
   const baseCurrencyData = currencies.find((c) => c.code === baseCurrency);
-  const selectedCurrencies = currencies.filter((c) =>
-    selectedCurrencyCodes.includes(c.code)
-  );
 
   if (!baseCurrencyData) {
     return <Text style={tw`text-red-500`}>Base currency not found</Text>;
@@ -128,48 +188,15 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   return (
     <View style={tw`bg-white rounded-3xl p-6 flex-1`}>
       <Text style={tw`text-2xl font-bold mb-4`}>My currencies</Text>
-      <ScrollView style={tw`flex-1`}>
-        {selectedCurrencies.map((currency) => {
-          const convertedAmount = convertCurrency(
-            baseAmount,
-            baseCurrencyData,
-            currency
-          );
-          return (
-            <Swipeable
-              key={currency.code}
-              renderRightActions={() => renderRightActionBtn(currency.code)}
-            >
-              <View
-                style={tw`flex-row items-center justify-between py-3 border-b border-gray-100`}
-              >
-                <View style={tw`flex-row items-center`}>
-                  {currency.type === 'crypto' ? (
-                    <Image
-                      source={{ uri: currency.flag }}
-                      style={tw`w-6 h-6 mr-2`}
-                    />
-                  ) : (
-                    <Text style={tw`mr-2 text-lg`}>{currency.flag}</Text>
-                  )}
-                  <Text style={tw`font-semibold`}>{currency.code}</Text>
-                </View>
-                <View style={tw`items-end`}>
-                  <Text style={tw`font-semibold`}>
-                    {currency.symbol}
-                    {convertedAmount !== null
-                      ? convertedAmount.toFixed(2)
-                      : '0.00'}
-                  </Text>
-                  <Text style={tw`text-xs text-gray-500`}>
-                    {getDescription(currency, baseCurrencyData)}
-                  </Text>
-                </View>
-              </View>
-            </Swipeable>
-          );
-        })}
-      </ScrollView>
+      <DraggableFlatList
+        data={data}
+        onDragEnd={({ data }) => {
+          setData(data);
+          onReorderCurrencies(data.map((currency) => currency.code));
+        }} // Update data after drag ends
+        keyExtractor={(item) => item.code}
+        renderItem={renderItem}
+      />
     </View>
   );
 };

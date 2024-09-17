@@ -21,10 +21,11 @@ export default function Index() {
   const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([
     'USD',
   ]);
-  const { cryptoCurrencies, fiatCurrencies, isLoading, error } =
+  const { cryptoCurrencies, fiatCurrencies, sortCurrencies, isLoading, error } =
     useCurrencies();
 
   const allCurrencies = [...fiatCurrencies, ...cryptoCurrencies];
+  const orderedCurrencies = sortCurrencies(allCurrencies, selectedCurrencies);
 
   useEffect(() => {
     loadSelectedCurrencies();
@@ -65,13 +66,17 @@ export default function Index() {
   };
   const handleAddCurrency = (currency: { code: string }) => {
     if (!selectedCurrencies.includes(currency.code)) {
-      setSelectedCurrencies([...selectedCurrencies, currency.code]);
+      setSelectedCurrencies((prevSelected) => [...prevSelected, currency.code]);
     }
   };
   const handleRemoveCurrency = (currencyCode: string) => {
     setSelectedCurrencies(
       selectedCurrencies.filter((code) => code !== currencyCode)
     );
+  };
+
+  const handleReorderCurrencies = (newOrder: string[]) => {
+    setSelectedCurrencies(newOrder);
   };
 
   return (
@@ -97,6 +102,7 @@ export default function Index() {
               isLoading={isLoading}
               error={error}
               onRemoveCurrency={handleRemoveCurrency}
+              onReorderCurrencies={handleReorderCurrencies}
               availableCurrencies={allCurrencies}
             />
           </View>

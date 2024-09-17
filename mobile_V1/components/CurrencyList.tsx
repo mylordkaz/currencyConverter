@@ -1,6 +1,8 @@
 import { View, Text, ScrollView, ActivityIndicator, Image } from 'react-native';
+import { RectButton, Swipeable } from 'react-native-gesture-handler';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';
+import { Ionicons } from '@expo/vector-icons';
 
 interface CurrencyListProps {
   currencies: Currency[];
@@ -9,7 +11,6 @@ interface CurrencyListProps {
   baseAmount: number;
   isLoading: boolean;
   error: string | null;
-  onAddCurrency: (currency: Currency) => void;
   onRemoveCurrency: (currencyCode: string) => void;
   availableCurrencies: Currency[];
 }
@@ -21,6 +22,7 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   baseAmount,
   isLoading,
   error,
+  onRemoveCurrency,
 }) => {
   const getDescriptionRate = (
     currency: Currency,
@@ -95,6 +97,17 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
     }
   };
 
+  const renderRightActionBtn = (currencyCode: string) => {
+    return (
+      <RectButton
+        style={tw`bg-red-500 justify-center items-center p-4`}
+        onPress={() => onRemoveCurrency(currencyCode)}
+      >
+        <Ionicons name="trash-outline" size={24} color="white" />
+      </RectButton>
+    );
+  };
+
   if (isLoading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
@@ -123,33 +136,37 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
             currency
           );
           return (
-            <View
+            <Swipeable
               key={currency.code}
-              style={tw`flex-row items-center justify-between py-3 border-b border-gray-100`}
+              renderRightActions={() => renderRightActionBtn(currency.code)}
             >
-              <View style={tw`flex-row items-center`}>
-                {currency.type === 'crypto' ? (
-                  <Image
-                    source={{ uri: currency.flag }}
-                    style={tw`w-6 h-6 mr-2`}
-                  />
-                ) : (
-                  <Text style={tw`mr-2 text-lg`}>{currency.flag}</Text>
-                )}
-                <Text style={tw`font-semibold`}>{currency.code}</Text>
+              <View
+                style={tw`flex-row items-center justify-between py-3 border-b border-gray-100`}
+              >
+                <View style={tw`flex-row items-center`}>
+                  {currency.type === 'crypto' ? (
+                    <Image
+                      source={{ uri: currency.flag }}
+                      style={tw`w-6 h-6 mr-2`}
+                    />
+                  ) : (
+                    <Text style={tw`mr-2 text-lg`}>{currency.flag}</Text>
+                  )}
+                  <Text style={tw`font-semibold`}>{currency.code}</Text>
+                </View>
+                <View style={tw`items-end`}>
+                  <Text style={tw`font-semibold`}>
+                    {currency.symbol}
+                    {convertedAmount !== null
+                      ? convertedAmount.toFixed(2)
+                      : '0.00'}
+                  </Text>
+                  <Text style={tw`text-xs text-gray-500`}>
+                    {getDescription(currency, baseCurrencyData)}
+                  </Text>
+                </View>
               </View>
-              <View style={tw`items-end`}>
-                <Text style={tw`font-semibold`}>
-                  {currency.symbol}
-                  {convertedAmount !== null
-                    ? convertedAmount.toFixed(2)
-                    : '0.00'}
-                </Text>
-                <Text style={tw`text-xs text-gray-500`}>
-                  {getDescription(currency, baseCurrencyData)}
-                </Text>
-              </View>
-            </View>
+            </Swipeable>
           );
         })}
       </ScrollView>

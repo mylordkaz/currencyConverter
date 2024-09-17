@@ -89,7 +89,7 @@ export default function Index() {
               amount={amount}
               onAmountChange={handleAmountChange}
             />
-            <View style={tw`flex-1`}>
+            <View style={tw`flex-1 mt-4`}>
               <CurrencyList
                 currencies={allCurrencies}
                 selectedCurrencyCodes={selectedCurrencies}

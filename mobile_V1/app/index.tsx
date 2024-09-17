@@ -97,7 +97,6 @@ export default function Index() {
                 baseAmount={parseFloat(amount) || 0}
                 isLoading={isLoading}
                 error={error}
-                onAddCurrency={handleAddCurrency}
                 onRemoveCurrency={handleRemoveCurrency}
                 availableCurrencies={allCurrencies}
               />

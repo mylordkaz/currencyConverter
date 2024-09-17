@@ -25,17 +25,17 @@ func Load() (*Config, error) {
 	if cryptoAPIKEY == "" {
 		return nil, fmt.Errorf("CRYPTO_API_KEY env is not set")
 	}
-	frontURL := os.Getenv("FRONT_URL")
-	if frontURL == "" {
-		return nil, fmt.Errorf("frontend URL is not defined")
-	}
+	// frontURL := os.Getenv("FRONT_URL")
+	// if frontURL == "" {
+	// 	return nil, fmt.Errorf("frontend URL is not defined")
+	// }
 
 	return &Config{
 		FiatAPIURL: fiatAPIURL,
 		FiatAPIKEY: fiatAPIKEY,
 		CryptoAPIURL: cryptoAPIURL,
 		CryptoAPIKEY: cryptoAPIKEY,
-		FrontURL: frontURL,
+		// FrontURL: frontURL,
 		Port: getEnvDefault("PORT", "8080"),
 	}, nil
 }

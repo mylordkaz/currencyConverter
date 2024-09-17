@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { API_URL } from '@env';
 import { useEffect, useState, useTransition } from 'react';
 import { Currency } from '@/constants/type';
 
@@ -33,6 +32,8 @@ const useCurrencies = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
   const fetchCrypto = async () => {
     try {

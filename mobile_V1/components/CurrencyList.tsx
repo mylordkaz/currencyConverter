@@ -100,7 +100,7 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   const renderRightActionBtn = (currencyCode: string) => {
     return (
       <RectButton
-        style={tw`bg-red-500 justify-center items-center p-4`}
+        style={tw`bg-red-500 rounded-3xl justify-center items-center p-4`}
         onPress={() => onRemoveCurrency(currencyCode)}
       >
         <Ionicons name="trash-outline" size={24} color="white" />

@@ -77,32 +77,31 @@ export default function Index() {
   return (
     <LinearGradient colors={['#60A5FA', '#2563EB']} style={tw`flex-1`}>
       <SafeAreaView style={tw`flex-1`}>
-        <ScrollView contentContainerStyle={tw`flex-grow`}>
-          <View style={tw`flex-1 p-4`}>
-            <Text style={tw`text-4xl font-bold mb-8 text-center text-black`}>
-              Tsukakan
-            </Text>
-            <CurrencySelector
+        <View style={tw`flex-1 p-4`}>
+          <Text style={tw`text-4xl font-bold mb-8 text-center text-black`}>
+            Tsukakan
+          </Text>
+          <CurrencySelector
+            currencies={allCurrencies}
+            selectedCurrency={selectedCurrency}
+            onCurrencyChange={handleCurrencyChange}
+            amount={amount}
+            onAmountChange={handleAmountChange}
+          />
+          <View style={tw`flex-1 mt-4`}>
+            <CurrencyList
               currencies={allCurrencies}
-              selectedCurrency={selectedCurrency}
-              onCurrencyChange={handleCurrencyChange}
-              amount={amount}
-              onAmountChange={handleAmountChange}
+              selectedCurrencyCodes={selectedCurrencies}
+              baseCurrency={selectedCurrency}
+              baseAmount={parseFloat(amount) || 0}
+              isLoading={isLoading}
+              error={error}
+              onRemoveCurrency={handleRemoveCurrency}
+              availableCurrencies={allCurrencies}
             />
-            <View style={tw`flex-1 mt-4`}>
-              <CurrencyList
-                currencies={allCurrencies}
-                selectedCurrencyCodes={selectedCurrencies}
-                baseCurrency={selectedCurrency}
-                baseAmount={parseFloat(amount) || 0}
-                isLoading={isLoading}
-                error={error}
-                onRemoveCurrency={handleRemoveCurrency}
-                availableCurrencies={allCurrencies}
-              />
-            </View>
           </View>
-        </ScrollView>
+        </View>
+
         <TouchableOpacity
           style={tw`absolute bottom-8 right-8 bg-black rounded-full w-16 h-16 items-center justify-center z-10`}
           onPress={() => setIsModalVisible(true)}

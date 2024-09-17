@@ -153,18 +153,6 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
           );
         })}
       </ScrollView>
-      {/* <TouchableOpacity
-        style={tw`absolute bottom-4 right-4 bg-black rounded-full w-12 h-12 items-center justify-center z-10`}
-        onPress={() => setIsModalVisible(true)}
-      >
-        <Text style={tw`text-white font-bold text-2xl`}>+</Text>
-      </TouchableOpacity>
-      <AddCurrencyModal
-        isVisible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        onAddCurrency={onAddCurrency}
-        availableCurrencies={availableCurrencies}
-      /> */}
     </View>
   );
 };

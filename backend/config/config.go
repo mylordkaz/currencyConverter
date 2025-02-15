@@ -6,12 +6,12 @@ import (
 )
 
 type Config struct {
-	FiatAPIURL 		string
-	FiatAPIKEY		string
-	CryptoAPIURL	string
-	CryptoAPIKEY	string
-	FrontURL		string
-	Port			string
+	FiatAPIURL   string
+	FiatAPIKEY   string
+	CryptoAPIURL string
+	CryptoAPIKEY string
+	FrontURL     string
+	Port         string
 }
 
 func Load() (*Config, error) {
@@ -31,8 +31,8 @@ func Load() (*Config, error) {
 	// }
 
 	return &Config{
-		FiatAPIURL: fiatAPIURL,
-		FiatAPIKEY: fiatAPIKEY,
+		FiatAPIURL:   fiatAPIURL,
+		FiatAPIKEY:   fiatAPIKEY,
 		CryptoAPIURL: cryptoAPIURL,
 		CryptoAPIKEY: cryptoAPIKEY,
 		// FrontURL: frontURL,

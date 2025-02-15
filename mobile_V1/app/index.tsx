@@ -1,31 +1,39 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import tw from 'twrnc';
-import CurrencySelector from '@/components/CurrencySelector';
-import CurrencyList from '@/components/CurrencyList';
-import useCurrencies from '@/hooks/useCurrencies';
-import { useEffect, useState } from 'react';
-import AddCurrencyModal from '@/components/AddCurrencyModal';
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import tw from "twrnc";
+import CurrencySelector from "@/components/CurrencySelector";
+import CurrencyList from "@/components/CurrencyList";
+import useCurrencies from "@/hooks/useCurrencies";
+import { useEffect, useState } from "react";
+import AddCurrencyModal from "@/components/AddCurrencyModal";
+import { useFonts } from "expo-font";
 
 export default function Index() {
-  const [amount, setAmount] = useState('');
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [amount, setAmount] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([
-    'USD',
+    "USD",
   ]);
   const { cryptoCurrencies, fiatCurrencies, sortCurrencies, isLoading, error } =
     useCurrencies();
 
   const allCurrencies = [...fiatCurrencies, ...cryptoCurrencies];
   const orderedCurrencies = sortCurrencies(allCurrencies, selectedCurrencies);
+  const [fontsLoaded] = useFonts({
+    Delius: require("../assets/fonts/Delius-Regular.ttf"),
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   useEffect(() => {
     loadSelectedCurrencies();
@@ -37,23 +45,23 @@ export default function Index() {
 
   const loadSelectedCurrencies = async () => {
     try {
-      const savedCurrencies = await AsyncStorage.getItem('selectedCurrencies');
+      const savedCurrencies = await AsyncStorage.getItem("selectedCurrencies");
       if (savedCurrencies) {
         setSelectedCurrencies(JSON.parse(savedCurrencies));
       }
     } catch (error) {
-      console.error('Error loading currencies', error);
+      console.error("Error loading currencies", error);
     }
   };
 
   const saveSelectedCurrencies = async () => {
     try {
       await AsyncStorage.setItem(
-        'selectedCurrencies',
-        JSON.stringify(selectedCurrencies)
+        "selectedCurrencies",
+        JSON.stringify(selectedCurrencies),
       );
     } catch (error) {
-      console.error('Error saving currencies', error);
+      console.error("Error saving currencies", error);
     }
   };
 
@@ -71,7 +79,7 @@ export default function Index() {
   };
   const handleRemoveCurrency = (currencyCode: string) => {
     setSelectedCurrencies(
-      selectedCurrencies.filter((code) => code !== currencyCode)
+      selectedCurrencies.filter((code) => code !== currencyCode),
     );
   };
 
@@ -80,12 +88,29 @@ export default function Index() {
   };
 
   return (
-    <LinearGradient colors={['#60A5FA', '#2563EB']} style={tw`flex-1`}>
+    <LinearGradient colors={["#60A5FA", "#2563EB"]} style={tw`flex-1`}>
       <SafeAreaView style={tw`flex-1`}>
         <View style={tw`flex-1 p-4`}>
-          <Text style={tw`text-4xl font-bold mb-8 text-center text-black`}>
-            Tsukakan
-          </Text>
+          <View style={tw`mb-4 items-center justify-center`}>
+            <View>
+              <Text
+                style={[
+                  tw`text-4xl font-bold text-white tracking-wide mr-20`,
+                  { fontFamily: "Delius" },
+                ]}
+              >
+                Money
+              </Text>
+              <Text
+                style={[
+                  tw`text-4xl font-bold text-white tracking-wide ml-24`,
+                  { fontFamily: "Delius" },
+                ]}
+              >
+                Swap
+              </Text>
+            </View>
+          </View>
           <CurrencySelector
             currencies={allCurrencies}
             selectedCurrency={selectedCurrency}

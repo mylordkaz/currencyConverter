@@ -25,18 +25,16 @@ func Load() (*Config, error) {
 	if cryptoAPIKEY == "" {
 		return nil, fmt.Errorf("CRYPTO_API_KEY env is not set")
 	}
-	// frontURL := os.Getenv("FRONT_URL")
-	// if frontURL == "" {
-	// 	return nil, fmt.Errorf("frontend URL is not defined")
-	// }
 
 	return &Config{
 		FiatAPIURL:   fiatAPIURL,
 		FiatAPIKEY:   fiatAPIKEY,
 		CryptoAPIURL: cryptoAPIURL,
 		CryptoAPIKEY: cryptoAPIKEY,
-		// FrontURL: frontURL,
-		Port: getEnvDefault("PORT", "8080"),
+		// FRONT_URL is an optional, comma-separated allow-list of browser
+		// origins for CORS. Defaults to the Vite dev server when unset.
+		FrontURL: getEnvDefault("FRONT_URL", "http://localhost:5173"),
+		Port:     getEnvDefault("PORT", "8080"),
 	}, nil
 }
 

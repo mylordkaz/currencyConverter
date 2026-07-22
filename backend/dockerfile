@@ -1,7 +1,0 @@
-FROM golang:1.22.5
-WORKDIR /app
-COPY . .
-WORKDIR /app/cmd/server
-RUN go build -o /app/main .
-EXPOSE 8080
-CMD [ "./main" ]

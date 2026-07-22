@@ -1,0 +1,8 @@
+# Never bake secrets or dev-only artifacts into the image.
+# NOTE: do NOT ignore *.go here — that would exclude all source from the build.
+.env
+.env.*
+tmp/
+.git
+*.md
+.air.toml

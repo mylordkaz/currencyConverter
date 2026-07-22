@@ -1,0 +1,16 @@
+services:
+  go-backend:
+    build: .
+    ports:
+      - '8080:8080'
+    env_file:
+      - .env
+    restart: unless-stopped
+    # Distroless has no shell/curl/wget, so the healthcheck re-execs the server
+    # binary in probe mode ("/server -healthcheck"), which hits /healthz itself.
+    healthcheck:
+      test: ['CMD', '/server', '-healthcheck']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

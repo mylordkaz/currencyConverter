@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Currency } from '../lib/currency';
+import CurrencyIcon from './CurrencyIcon';
 
 interface CurrencySelectionModalProps {
   currencies: Currency[];
@@ -9,7 +10,7 @@ interface CurrencySelectionModalProps {
 
 const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
   currencies,
-  //   selectedCurrency,
+  selectedCurrency,
   onCurrencySelected,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,11 +26,8 @@ const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
         setIsOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const filteredCurrencies = currencies.filter(
@@ -41,41 +39,58 @@ const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-black text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl"
+        aria-label="Add currency"
+        className="flex h-14 w-14 items-center justify-center rounded-[18px] bg-brand text-white text-2xl font-light border border-brand-bright shadow-[0_10px_24px_-8px_rgba(61,123,255,0.7)]"
       >
         +
       </button>
       {isOpen && (
-        <div className="absolute p-2 right-2 bottom-16 mt-2 w-96 bg-white rounded-lg shadow-lg">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full p-2 bg-gray-100 border-b border-gray-300 rounded-t-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <div className="max-h-64 overflow-y-auto">
-            {filteredCurrencies.map((currency) => (
-              <div
-                key={currency.id}
-                className="flex items-center p-2 text-md hover:bg-gray-100 cursor-pointer"
-                onClick={() => onCurrencySelected(currency.code)}
-              >
-                {currency.type === 'crypto' ? (
-                  <img
-                    src={currency.flag}
-                    alt={currency.name}
-                    className="w-6 h-6 mr-2"
-                  />
-                ) : (
-                  <span className="mr-2">{currency.flag}</span>
-                )}
-                <span>
-                  {currency.code} - {currency.name}
-                </span>
-              </div>
-            ))}
+        <div className="absolute bottom-16 right-0 z-20 w-80 rounded-xl border border-line bg-panel2 shadow-2xl overflow-hidden">
+          <div className="border-b border-line p-3">
+            <div className="font-mono text-[15px] font-bold tracking-wide mb-2">
+              ADD CURRENCY
+            </div>
+            <input
+              type="text"
+              placeholder="Search currencies…"
+              className="w-full rounded-lg bg-bg border border-line2 px-3 py-2 text-[14px] text-ink placeholder:text-faint focus:outline-none focus:border-brand-line"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="max-h-72 overflow-y-auto">
+            {filteredCurrencies.map((currency) => {
+              const added = selectedCurrency.includes(currency.code);
+              return (
+                <button
+                  type="button"
+                  key={currency.id}
+                  className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-raise cursor-pointer"
+                  onClick={() => onCurrencySelected(currency.code)}
+                >
+                  <CurrencyIcon currency={currency} size={34} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-mono text-[13px] font-bold tracking-wide">
+                      {currency.code}
+                    </span>
+                    <span className="block truncate text-[12px] text-faint">
+                      {currency.name}
+                    </span>
+                  </span>
+                  <span
+                    className={`flex h-7 w-7 items-center justify-center rounded-full border text-[15px] ${
+                      added
+                        ? 'bg-brand text-white border-brand-bright'
+                        : 'bg-brand-soft text-brand-bright border-brand-line'
+                    }`}
+                  >
+                    {added ? '✓' : '+'}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   View,
@@ -6,11 +6,12 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
-  Image,
   Dimensions,
 } from 'react-native';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';
+import { C, MONO } from '@/constants/theme';
+import CurrencyIcon from './CurrencyIcon';
 
 interface AddCurrencyModalProps {
   isVisible: boolean;
@@ -20,7 +21,7 @@ interface AddCurrencyModalProps {
 }
 
 const { height: windowHeight } = Dimensions.get('window');
-const MODAL_HEIGHT = windowHeight * 0.65;
+const MODAL_HEIGHT = windowHeight * 0.7;
 
 const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
   isVisible,
@@ -31,59 +32,65 @@ const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (!isVisible) {
-      setSearchQuery('');
-    }
+    if (!isVisible) setSearchQuery('');
   }, [isVisible]);
 
-  const filteredCurrencies = availableCurrencies.filter(
-    (currency) =>
-      currency.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      currency.code.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCurrencies = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return availableCurrencies.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
+    );
+  }, [availableCurrencies, searchQuery]);
+
+  const fiatCount = availableCurrencies.filter((c) => c.type === 'fiat').length;
+  const cryptoCount = availableCurrencies.length - fiatCount;
 
   const renderCurrencyItem = ({ item }: { item: Currency }) => (
     <TouchableOpacity
-      style={tw`flex-row items-center p-3 border-b border-gray-200`}
+      style={[tw`flex-row items-center px-1`, { paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: C.line }]}
       onPress={() => {
         onAddCurrency(item);
         onClose();
       }}
     >
-      {item.type === 'crypto' ? (
-        <Image source={{ uri: item.flag }} style={tw`w-6 h-6 mr-3`} />
-      ) : (
-        <Text style={tw`text-2xl mr-3`}>{item.flag}</Text>
-      )}
-      <Text style={tw`text-lg`}>
-        {item.name} ({item.code})
-      </Text>
+      <CurrencyIcon currency={item} size={40} />
+      <View style={tw`ml-3 flex-1`}>
+        <Text style={{ fontFamily: MONO, fontWeight: '700', color: C.text, fontSize: 14, letterSpacing: 0.4 }}>{item.code}</Text>
+        <Text style={{ color: C.faint, fontSize: 12.5, marginTop: 1 }} numberOfLines={1}>{item.name}</Text>
+      </View>
+      <View style={{ width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: C.blueLine, backgroundColor: C.blueSoft, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontFamily: MONO, fontSize: 17, color: C.blueBright, lineHeight: 20 }}>+</Text>
+      </View>
     </TouchableOpacity>
   );
 
   return (
     <Modal visible={isVisible} animationType="slide" transparent>
-      <View style={tw`flex-1 justify-end `}>
-        <TouchableOpacity style={tw`flex-1`} onPress={onClose} />
+      <View style={[tw`flex-1 justify-end`, { backgroundColor: 'rgba(9,12,17,0.5)' }]}>
+        <TouchableOpacity style={tw`flex-1`} activeOpacity={1} onPress={onClose} />
         <View
-          style={tw.style('bg-white rounded-t-3xl', { height: MODAL_HEIGHT })}
+          style={[
+            tw`px-5 pb-5`,
+            { height: MODAL_HEIGHT, backgroundColor: C.panel2, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderBottomWidth: 0, borderColor: C.line },
+          ]}
         >
-          <View
-            style={tw`w-10 h-1 bg-gray-300 rounded-full mx-auto mt-2 mb-2`}
+          <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: C.line2, alignSelf: 'center', marginTop: 8, marginBottom: 16 }} />
+          <Text style={{ fontFamily: MONO, fontSize: 17, fontWeight: '700', color: C.text, letterSpacing: 0.6 }}>ADD CURRENCY</Text>
+          <Text style={{ fontFamily: MONO, fontSize: 11, color: C.faint, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 4, marginBottom: 16 }}>
+            {fiatCount} fiat · {cryptoCount} coins
+          </Text>
+          <TextInput
+            style={{ backgroundColor: C.bg, borderWidth: 1, borderColor: C.line2, color: C.text, borderRadius: 13, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, marginBottom: 8 }}
+            placeholder="Search currencies…"
+            placeholderTextColor={C.faint}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
-          <View style={tw`p-4 border-b border-gray-200`}>
-            <Text style={tw`text-2xl font-bold mb-2`}>Add Currency</Text>
-            <TextInput
-              style={tw`bg-gray-100 p-2 rounded`}
-              placeholder="Search currencies..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
           <FlatList
             data={filteredCurrencies}
             renderItem={renderCurrencyItem}
             keyExtractor={(item) => item.id}
+            keyboardShouldPersistTaps="handled"
           />
         </View>
       </View>

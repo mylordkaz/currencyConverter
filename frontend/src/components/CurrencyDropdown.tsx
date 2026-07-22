@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Currency } from '../lib/currency';
+import CurrencyIcon from './CurrencyIcon';
 
 interface CurrencyDropdownProps {
   currencies: Currency[];
@@ -25,13 +26,11 @@ const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({
         setIsOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const selected = currencies.find((c) => c.code === selectedCurrency);
   const filteredCurrencies = currencies.filter(
     (currency) =>
       currency.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -40,69 +39,51 @@ const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <div
-        className="inline-flex items-center gap-2 bg-transparent rounded-lg p-2 cursor-pointer"
+      <button
+        type="button"
+        className="inline-flex items-center gap-2 rounded-full bg-raise border border-line2 py-1.5 pl-1.5 pr-3 cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {currencies.find((c) => c.code === selectedCurrency)?.type ===
-        'crypto' ? (
-          <img
-            src={currencies.find((c) => c.code === selectedCurrency)?.flag}
-            alt={selectedCurrency}
-            className="w-6 h-6"
-          />
-        ) : (
-          <span>
-            {currencies.find((c) => c.code === selectedCurrency)?.flag}
-          </span>
-        )}
-        <span> {selectedCurrency}</span>
-        <div className="pointer-events-none flex items-center px-2 text-white">
-          <svg
-            className="fill-current h-4 w-4"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-          >
-            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-          </svg>
-        </div>
-      </div>
+        {selected && <CurrencyIcon currency={selected} size={22} />}
+        <span className="font-mono text-[13px] font-semibold tracking-wide">
+          {selectedCurrency}
+        </span>
+        <span className="text-brand-bright text-[10px]">▾</span>
+      </button>
+
       {isOpen && (
-        <div className="absolute mt-1 ml-4 w-auto bg-gray-200 rounded-lg shadow-lg z-10">
-          <input
-            type="text"
-            placeholder="search"
-            className="w-full p-2 rounded-t-lg"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <div className="max-h-60 overflow-y-auto">
+        <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-line bg-panel2 shadow-2xl overflow-hidden">
+          <div className="border-b border-line p-2">
+            <input
+              type="text"
+              placeholder="Search currencies"
+              className="w-full rounded-lg bg-bg border border-line2 px-3 py-2 text-[14px] text-ink placeholder:text-faint focus:outline-none focus:border-brand-line"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="max-h-64 overflow-y-auto">
             {filteredCurrencies.map((currency) => (
-              <div
+              <button
+                type="button"
                 key={currency.id}
-                className="flex items-center justify-between gap-32 p-2 rounded-b-lg hover:bg-gray-100 cursor-pointer"
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-raise cursor-pointer"
                 onClick={() => {
                   onSelect(currency.code);
                   setIsOpen(false);
+                  setSearchTerm('');
                 }}
               >
-                <div className="flex items-center">
-                  {currency.type === 'crypto' ? (
-                    <img
-                      src={currency.flag}
-                      alt={currency.name}
-                      className="w-6 h-6 mr-2"
-                    />
-                  ) : (
-                    <span className="mr-2">{currency.flag}</span>
-                  )}
-                  <div>
-                    <div>{currency.code}</div>
-                    <div className="text-sm text-gray-500">{currency.name}</div>
-                  </div>
-                </div>
-                <span>{currency.symbol}</span>
-              </div>
+                <CurrencyIcon currency={currency} size={30} />
+                <span className="min-w-0">
+                  <span className="block font-mono text-[13px] font-bold tracking-wide">
+                    {currency.code}
+                  </span>
+                  <span className="block truncate text-[12px] text-faint">
+                    {currency.name}
+                  </span>
+                </span>
+              </button>
             ))}
           </div>
         </div>

@@ -6,13 +6,12 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Image,
   Dimensions,
-  Keyboard,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';
+import { C, MONO } from '@/constants/theme';
+import CurrencyIcon from './CurrencyIcon';
 
 interface CurrencySelectorProps {
   currencies: Currency[];
@@ -39,17 +38,14 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
     (c) => c.code === selectedCurrency
   );
 
-  const dismissKeyboard = () => {
-    Keyboard.dismiss();
-  };
-
   useEffect(() => {
-    const filtered = currencies.filter(
-      (currency) =>
-        currency.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        currency.code.toLowerCase().includes(searchQuery.toLowerCase())
+    const q = searchQuery.toLowerCase();
+    setFilteredCurrencies(
+      currencies.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
+      )
     );
-    setFilteredCurrencies(filtered);
   }, [searchQuery, currencies]);
 
   const closeModal = useCallback(() => {
@@ -59,97 +55,113 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
 
   const renderCurrencyItem = ({ item }: { item: Currency }) => (
     <TouchableOpacity
-      style={tw`flex-row items-center p-3 border-b border-gray-200`}
+      style={[tw`flex-row items-center px-4 py-3`, { borderBottomWidth: 1, borderBottomColor: C.line }]}
       onPress={() => {
         onCurrencyChange(item.code);
         closeModal();
       }}
     >
-      {item.type === 'crypto' ? (
-        <Image source={{ uri: item.flag }} style={tw`w-6 h-6 mr-3`} />
-      ) : (
-        <Text style={tw`text-2xl mr-3`}>{item.flag}</Text>
-      )}
-      <Text style={tw`text-lg`}>
-        {item.name} ({item.code})
-      </Text>
+      <CurrencyIcon currency={item} size={34} />
+      <View style={tw`ml-3 flex-1`}>
+        <Text style={{ fontFamily: MONO, fontWeight: '700', color: C.text, fontSize: 14, letterSpacing: 0.4 }}>
+          {item.code}
+        </Text>
+        <Text style={{ color: C.faint, fontSize: 12.5, marginTop: 1 }}>{item.name}</Text>
+      </View>
     </TouchableOpacity>
   );
-  return (
-    <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <View style={tw`w-full max-w-md`}>
-        <TouchableOpacity
-          style={tw`flex-row items-center rounded-full px-4 py-2 mb-4`}
-          onPress={() => {
-            setIsDropdownVisible(true);
-          }}
-        >
-          {selectedCurrencyData?.type === 'crypto' ? (
-            <Image
-              source={{ uri: selectedCurrencyData.flag }}
-              style={tw`w-6 h-6 mr-2`}
-            />
-          ) : (
-            <Text style={tw`text-white mr-2`}>
-              {selectedCurrencyData?.flag}
-            </Text>
-          )}
-          <Text style={tw`text-white font-bold`}>{selectedCurrency}</Text>
-          <Text style={tw`text-white ml-2`}>▼</Text>
-        </TouchableOpacity>
 
-        <View
-          style={tw`bg-gray-300 rounded-3xl p-2 pl-4 flex-row items-center`}
+  return (
+    <View
+      style={[
+        tw`rounded-2xl p-5`,
+        { backgroundColor: C.panel, borderWidth: 1, borderColor: C.line },
+      ]}
+    >
+      {/* label + base pill */}
+      <View style={tw`flex-row items-center justify-between mb-4`}>
+        <Text style={{ fontFamily: MONO, fontSize: 10, letterSpacing: 2, color: C.faint }}>
+          AMOUNT
+        </Text>
+        <TouchableOpacity
+          style={[
+            tw`flex-row items-center rounded-full`,
+            { backgroundColor: C.raise, borderWidth: 1, borderColor: C.line2, paddingVertical: 6, paddingHorizontal: 12, paddingLeft: 6 },
+          ]}
+          onPress={() => setIsDropdownVisible(true)}
         >
-          <Text style={tw`text-white text-3xl font-bold mr-2`}>
-            {selectedCurrencyData?.symbol}
+          {selectedCurrencyData && <CurrencyIcon currency={selectedCurrencyData} size={22} />}
+          <Text style={{ fontFamily: MONO, fontWeight: '600', color: C.text, fontSize: 13, marginLeft: 8, letterSpacing: 0.4 }}>
+            {selectedCurrency}
           </Text>
-          <TextInput
-            style={tw`flex-1 text-white text-xl font-bold`}
-            value={amount}
-            onChangeText={onAmountChange}
-            keyboardType="numeric"
-            placeholder="Enter amount"
-            placeholderTextColor="#A0AEC0"
-            onTouchStart={(e) => e.stopPropagation()}
-          />
-        </View>
-        <Modal
-          visible={isDropdownVisible}
-          transparent={true}
-          animationType="fade"
+          <Text style={{ color: C.blueBright, fontSize: 10, marginLeft: 6 }}>▾</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* big amount */}
+      <View style={tw`flex-row items-baseline`}>
+        <Text style={{ fontFamily: MONO, fontSize: 22, fontWeight: '600', color: C.faint, marginRight: 8 }}>
+          {selectedCurrencyData?.symbol ?? '$'}
+        </Text>
+        <TextInput
+          style={{ flex: 1, fontFamily: MONO, fontSize: 40, fontWeight: '600', color: C.text, padding: 0 }}
+          value={amount}
+          onChangeText={onAmountChange}
+          keyboardType="decimal-pad"
+          placeholder="0.00"
+          placeholderTextColor={C.faint}
+        />
+      </View>
+
+      {/* foot */}
+      <View
+        style={[
+          tw`flex-row items-center justify-between mt-4 pt-3`,
+          { borderTopWidth: 1, borderTopColor: C.line },
+        ]}
+      >
+        <Text style={{ fontFamily: MONO, fontSize: 11, letterSpacing: 0.4, color: C.faint, textTransform: 'uppercase' }}>
+          Base ·{' '}
+          <Text style={{ color: C.dim }}>{selectedCurrencyData?.name ?? '—'}</Text>
+        </Text>
+      </View>
+
+      {/* picker modal */}
+      <Modal visible={isDropdownVisible} transparent animationType="fade">
+        <TouchableOpacity
+          style={[tw`flex-1 justify-center items-center px-4`, { backgroundColor: 'rgba(9,12,17,0.6)' }]}
+          activeOpacity={1}
+          onPress={closeModal}
         >
-          <TouchableOpacity
-            style={tw`flex-1 justify-center items-center bg-black bg-opacity-50`}
-            activeOpacity={1}
-            onPress={closeModal}
+          <View
+            style={[
+              tw`rounded-2xl`,
+              { width: width * 0.92, maxHeight: height * 0.72, backgroundColor: C.panel2, borderWidth: 1, borderColor: C.line, overflow: 'hidden' },
+            ]}
           >
-            <View
-              style={[
-                tw`bg-white rounded-lg`,
-                { width: width * 0.94, maxHeight: height },
-              ]}
-            >
-              <View style={tw`p-4 border-b border-gray-200`}>
-                <Text style={tw`text-2xl font-bold mb-2`}>Select Currency</Text>
-                <TextInput
-                  style={tw`bg-gray-100 p-2 rounded-md`}
-                  placeholder="Search currencies"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
-              </View>
-              <FlatList
-                data={filteredCurrencies}
-                renderItem={renderCurrencyItem}
-                keyExtractor={(item) => item.id}
-                style={{ maxHeight: height * 0.6 }}
+            <View style={[tw`p-4`, { borderBottomWidth: 1, borderBottomColor: C.line }]}>
+              <Text style={{ fontFamily: MONO, fontSize: 15, fontWeight: '700', color: C.text, letterSpacing: 0.4, marginBottom: 10 }}>
+                SELECT BASE
+              </Text>
+              <TextInput
+                style={[
+                  { backgroundColor: C.bg, borderWidth: 1, borderColor: C.line2, color: C.text, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14 },
+                ]}
+                placeholder="Search currencies"
+                placeholderTextColor={C.faint}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
               />
             </View>
-          </TouchableOpacity>
-        </Modal>
-      </View>
-    </TouchableWithoutFeedback>
+            <FlatList
+              data={filteredCurrencies}
+              renderItem={renderCurrencyItem}
+              keyExtractor={(item) => item.id}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
   );
 };
 

@@ -1,0 +1,11 @@
+# tsukakan-rates — zero-cost, keyless rates proxy (replaces the Go backend).
+# Stateless by design: NO bindings (no KV, no D1, no Durable Objects, no cron,
+# no secrets). Edge caching uses the Workers Cache API only. Committed to the
+# repo — it contains zero credentials.
+name = "tsukakan-rates"
+main = "src/index.ts"
+compatibility_date = "2026-07-16"
+
+# Deploy is a manual owner step (`npx wrangler deploy`) — it needs Cloudflare
+# account auth. The Free plan (100k req/day) is orders of magnitude above need.
+# No secrets: both fiat and crypto come from the keyless CC0 currency-api CDN.

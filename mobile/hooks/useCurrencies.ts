@@ -1,121 +1,120 @@
 import axios from 'axios';
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState } from 'react';
 import { Currency } from '@/constants/type';
+import { getFlagEmoji } from '@/lib/currency';
+import { currencyCodes, currencyInfo } from '@/service/currencyInfo';
 
-const currencyInfo: Record<string, { name: string; symbol: string }> = {
-  USD: { name: 'United States Dollar', symbol: '$' },
-  EUR: { name: 'Euro', symbol: '€' },
-  JPY: { name: 'Japanese Yen', symbol: '¥' },
-  GBP: { name: 'British Pound', symbol: '£' },
-  AUD: { name: 'Australian Dollar', symbol: 'A$' },
-  CAD: { name: 'Canadian Dollar', symbol: 'C$' },
-  CHF: { name: 'Swiss Franc', symbol: 'CHF' },
-  CNY: { name: 'Chinese Yuan', symbol: '¥' },
-  HKD: { name: 'Hong Kong Dollar', symbol: 'HK$' },
-  NZD: { name: 'New Zealand Dollar', symbol: 'NZ$' },
-  // Add more currencies as needed
-};
-const currencyCodes = Object.keys(currencyInfo);
+/** Join a base URL and path with exactly one slash, tolerant of trailing/leading slashes. */
+const joinUrl = (base: string, path: string): string =>
+  `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
 
-const getFlagEmoji = (countryCode: string) => {
-  const codePoints = countryCode
-    .slice(0, 2)
-    .toUpperCase()
-    .split('')
-    .map((char) => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
-};
+/** Shape of `GET /api/fiat` from the rates worker (codes UPPERCASE). */
+interface FiatResponse {
+  base: string;
+  updatedAt: string;
+  rates: Record<string, number>;
+}
+
+/** Shape of each item in `GET /api/crypto` from the rates worker. */
+interface CryptoApiItem {
+  id: string;
+  symbol: string;
+  name: string;
+  price: number;
+  iconUrl: string;
+}
 
 const useCurrencies = () => {
   const [cryptoCurrencies, setCryptoCurrencies] = useState<Currency[]>([]);
   const [fiatCurrencies, setFiatCurrencies] = useState<Currency[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const API_URL = process.env.EXPO_PUBLIC_API_URL;
+  const [fiatError, setFiatError] = useState<string | null>(null);
+  const [cryptoError, setCryptoError] = useState<string | null>(null);
 
-  const fetchCrypto = async () => {
-    try {
-      console.log('Fetching crypto currencies from:', `${API_URL}api/crypto`);
-      const response = await axios.get(`${API_URL}api/crypto`);
-      console.log('Crypto data:', response.data);
-      const cryptos: Currency[] = response.data.map((crypto: any) => ({
-        code: crypto.symbol,
-        name: crypto.name,
-        flag: `https://s2.coinmarketcap.com/static/img/coins/64x64/${crypto.id}.png`,
-        rate: crypto.quote.USD.price,
-        symbol: crypto.symbol,
-        type: 'crypto',
-      }));
-      startTransition(() => {
-        setCryptoCurrencies(cryptos);
-      });
-    } catch (error) {
-      console.error('Error fetching crypto currencies', error);
-      setError('Failed to fetch crypto currencies');
-    }
-  };
-  const fetchFiat = async () => {
-    try {
-      console.log(
-        'Fetching fiat currencies from:',
-        `${API_URL}api/fiat?base=USD`
+  useEffect(() => {
+    const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+    const fetchCrypto = async (base: string) => {
+      const response = await axios.get<CryptoApiItem[]>(
+        joinUrl(base, 'api/crypto')
       );
-      const response = await axios.get(`${API_URL}api/fiat?base=USD`);
+      // The worker already guarantees unique symbols; keep this client-side
+      // dedupe guard so a ticker maps to exactly one row and code-based user
+      // selections stay unambiguous.
+      const seen = new Set<string>();
+      const cryptos: Currency[] = response.data
+        .map(
+          (crypto): Currency => ({
+            id: `crypto-${crypto.id}`,
+            code: crypto.symbol,
+            name: crypto.name,
+            flag: crypto.iconUrl,
+            rate: crypto.price,
+            symbol: crypto.symbol,
+            type: 'crypto',
+          })
+        )
+        .filter((c) => {
+          if (seen.has(c.code)) return false;
+          seen.add(c.code);
+          return true;
+        });
+      setCryptoCurrencies(cryptos);
+    };
+
+    const fetchFiat = async (base: string) => {
+      const response = await axios.get<FiatResponse>(
+        joinUrl(base, 'api/fiat?base=USD')
+      );
       const rates = response.data.rates;
       const fiats: Currency[] = currencyCodes
         .filter((code) => code in rates)
-        .map((code) => {
-          return {
-            code,
-            name: currencyInfo[code].name,
-            flag: getFlagEmoji(code),
-            rate: rates[code],
-            symbol: currencyInfo[code].symbol,
-            type: 'fiat',
-          };
-        });
-      startTransition(() => {
-        setFiatCurrencies(fiats);
-      });
-    } catch (error) {
-      console.error('Error fetching fiats', error);
-      setError('Failed to fetch fiat currencies');
-      if (axios.isAxiosError(error)) {
-        console.error('Request config:', error.config);
-        console.error('Response status:', error.response?.status);
-        console.error('Response data:', error.response?.data);
-      }
-    }
-  };
+        .map((code) => ({
+          id: `fiat-${code}`,
+          code,
+          name: currencyInfo[code].name,
+          flag: getFlagEmoji(code, currencyInfo[code].flag),
+          rate: rates[code],
+          symbol: currencyInfo[code].symbol,
+          type: 'fiat' as const,
+        }));
+      setFiatCurrencies(fiats);
+    };
 
-  useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const cryptoPromise = fetchCrypto().catch((error) => {
-          console.error('Crypto fetch error:', error);
-          return null;
-        });
-        const fiatPromise = fetchFiat().catch((error) => {
-          console.error('Fiat fetch error:', error);
-          return null;
-        });
-
-        await Promise.all([cryptoPromise, fiatPromise]);
-      } catch (error) {
-        console.error('Error fetching data', error);
-        setError('Failed to fetch currency data');
-      } finally {
-        startTransition(() => {
-          setIsLoading(false);
-        });
+      if (!apiUrl) {
+        const message =
+          'EXPO_PUBLIC_API_URL is not set. Configure it in your .env file.';
+        console.error(message);
+        setFiatError(message);
+        setCryptoError(message);
+        setIsLoading(false);
+        return;
       }
+
+      setIsLoading(true);
+      setFiatError(null);
+      setCryptoError(null);
+
+      // Independent sources: one failing must not blank the other.
+      await Promise.all([
+        fetchCrypto(apiUrl).catch((error) => {
+          console.error('Error fetching crypto currencies', error);
+          setCryptoError('Failed to fetch crypto currencies');
+        }),
+        fetchFiat(apiUrl).catch((error) => {
+          console.error('Error fetching fiat currencies', error);
+          setFiatError('Failed to fetch fiat currencies');
+        }),
+      ]);
+
+      setIsLoading(false);
     };
 
     fetchData();
   }, []);
-  return { cryptoCurrencies, fiatCurrencies, isLoading, error };
+
+  return { cryptoCurrencies, fiatCurrencies, isLoading, fiatError, cryptoError };
 };
 
 export default useCurrencies;

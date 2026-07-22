@@ -1,6 +1,23 @@
-import { View, Text, ScrollView, ActivityIndicator, Image } from 'react-native';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
+import { RectButton } from 'react-native-gesture-handler';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';
+import { Ionicons } from '@expo/vector-icons';
+import { useMemo, useState } from 'react';
+import ReorderableList, {
+  ReorderableListReorderEvent,
+  reorderItems,
+  useIsActive,
+  useReorderableDrag,
+} from 'react-native-reorderable-list';
+import { convertCurrency, formatAmount, getDescription } from '@/lib/currency';
 
 interface CurrencyListProps {
   currencies: Currency[];
@@ -8,11 +25,95 @@ interface CurrencyListProps {
   baseCurrency: string;
   baseAmount: number;
   isLoading: boolean;
-  error: string | null;
-  onAddCurrency: (currency: Currency) => void;
+  fiatError: string | null;
+  cryptoError: string | null;
   onRemoveCurrency: (currencyCode: string) => void;
-  availableCurrencies: Currency[];
+  onReorderCurrencies: (newOrder: string[]) => void;
 }
+
+/** A selected code paired with its live currency data (null => unresolved). */
+interface CurrencyRow {
+  code: string;
+  currency: Currency | null;
+}
+
+const rowKey = (row: CurrencyRow): string =>
+  row.currency ? row.currency.id : `missing-${row.code}`;
+
+const CurrencyRowItem = ({
+  row,
+  baseCurrencyData,
+  baseAmount,
+  onRemove,
+}: {
+  row: CurrencyRow;
+  baseCurrencyData: Currency;
+  baseAmount: number;
+  onRemove: (code: string) => void;
+}) => {
+  const drag = useReorderableDrag();
+  const isActive = useIsActive();
+
+  const renderRightActions = () => (
+    <RectButton
+      style={tw`bg-red-500 rounded-3xl justify-center items-center p-4`}
+      onPress={() => onRemove(row.code)}
+    >
+      <Ionicons name="trash-outline" size={24} color="white" />
+    </RectButton>
+  );
+
+  // Saved code with no live match (e.g. crypto dropped out of the CMC top 100):
+  // muted "rate unavailable" row, still swipe-to-delete-able.
+  if (!row.currency) {
+    return (
+      <ReanimatedSwipeable renderRightActions={renderRightActions}>
+        <View
+          style={tw`flex-row items-center justify-between py-3 border-b border-gray-100 bg-white`}
+        >
+          <View style={tw`flex-row items-center`}>
+            <Text style={tw`mr-2 text-lg`}>🏳️</Text>
+            <Text style={tw`font-semibold text-gray-400`}>{row.code}</Text>
+          </View>
+          <Text style={tw`text-xs text-gray-400`}>rate unavailable</Text>
+        </View>
+      </ReanimatedSwipeable>
+    );
+  }
+
+  const currency = row.currency;
+  const convertedAmount = convertCurrency(baseAmount, baseCurrencyData, currency);
+
+  return (
+    <ReanimatedSwipeable renderRightActions={renderRightActions}>
+      <TouchableOpacity
+        style={[
+          tw`flex-row items-center justify-between py-3 border-b border-gray-100`,
+          isActive ? tw`bg-gray-200` : tw`bg-white`,
+        ]}
+        onLongPress={drag}
+      >
+        <View style={tw`flex-row items-center`}>
+          {currency.type === 'crypto' ? (
+            <Image source={{ uri: currency.flag }} style={tw`w-6 h-6 mr-2`} />
+          ) : (
+            <Text style={tw`mr-2 text-lg`}>{currency.flag}</Text>
+          )}
+          <Text style={tw`font-semibold`}>{currency.code}</Text>
+        </View>
+        <View style={tw`items-end`}>
+          <Text style={tw`font-semibold`}>
+            {currency.symbol}
+            {convertedAmount !== null ? formatAmount(convertedAmount) : '0.00'}
+          </Text>
+          <Text style={tw`text-xs text-gray-500`}>
+            {getDescription(currency, baseCurrencyData)}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </ReanimatedSwipeable>
+  );
+};
 
 const CurrencyList: React.FC<CurrencyListProps> = ({
   currencies,
@@ -20,151 +121,83 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   baseCurrency,
   baseAmount,
   isLoading,
-  error,
+  fiatError,
+  cryptoError,
+  onRemoveCurrency,
+  onReorderCurrencies,
 }) => {
-  const getDescriptionRate = (
-    currency: Currency,
-    baseCurrencyObj: Currency
-  ) => {
-    if (baseCurrencyObj.type === 'fiat') {
-      if (currency.type === 'fiat') {
-        return currency.rate / baseCurrencyObj.rate;
-      } else {
-        return 1 / (currency.rate * baseCurrencyObj.rate);
-      }
-    } else {
-      if (currency.type === 'fiat') {
-        return baseCurrencyObj.rate * currency.rate;
-      } else {
-        return baseCurrencyObj.rate / currency.rate;
-      }
-    }
-  };
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
-  const getDescription = (currency: Currency, baseCurrencyObj: Currency) => {
-    if (baseCurrencyObj.code === currency.code)
-      return `1 ${currency.code} = 1 ${baseCurrencyObj.code}`;
+  const rows = useMemo<CurrencyRow[]>(
+    () =>
+      selectedCurrencyCodes.map((code) => ({
+        code,
+        currency: currencies.find((c) => c.code === code) ?? null,
+      })),
+    [currencies, selectedCurrencyCodes]
+  );
 
-    const descriptionRate = getDescriptionRate(currency, baseCurrencyObj);
+  const baseCurrencyData = useMemo(
+    () => currencies.find((c) => c.code === baseCurrency) ?? null,
+    [currencies, baseCurrency]
+  );
 
-    return `1 ${baseCurrencyObj.code} = ${descriptionRate.toFixed(4)} ${
-      currency.code
-    }`;
-  };
-
-  const convertCurrency = (
-    amount: number,
-    from: Currency,
-    to: Currency
-  ): number | null => {
-    if (isNaN(amount) || !isFinite(amount)) {
-      console.error('Invalid amount for conversion');
-      return null;
-    }
-
-    if (!from || !to) {
-      console.error('Invalid currency for conversion');
-      return null;
-    }
-
-    if (from.code === to.code) {
-      return amount;
-    }
-
-    try {
-      let convertedAmount: number;
-
-      if (from.type === 'crypto' && to.type === 'fiat') {
-        const amountInUsd = amount * from.rate;
-        convertedAmount = amountInUsd * to.rate;
-      } else if (from.type === 'fiat' && to.type === 'crypto') {
-        const amountInUsd = amount / from.rate;
-        convertedAmount = amountInUsd / to.rate;
-      } else if (from.type === 'crypto' && to.type === 'crypto') {
-        const amountInUsd = amount * from.rate;
-        convertedAmount = amountInUsd / to.rate;
-      } else {
-        const amountInUsd = amount / from.rate;
-        convertedAmount = amountInUsd * to.rate;
-      }
-
-      return Number(convertedAmount.toFixed(6));
-    } catch (error) {
-      console.error('Error during currency conversion:', error);
-      return null;
-    }
+  const handleReorder = ({ from, to }: ReorderableListReorderEvent) => {
+    onReorderCurrencies(reorderItems(selectedCurrencyCodes, from, to));
   };
 
   if (isLoading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
 
-  if (error) {
-    return <Text style={tw`text-red-500`}>{error}</Text>;
+  // Full error state only when both sources failed and there is nothing to show.
+  if (fiatError && cryptoError && currencies.length === 0) {
+    return (
+      <View style={tw`bg-white rounded-3xl p-6 flex-1`}>
+        <Text style={tw`text-2xl font-bold mb-4`}>My currencies</Text>
+        <Text style={tw`text-red-500`}>{fiatError}</Text>
+        <Text style={tw`text-red-500 mt-1`}>{cryptoError}</Text>
+      </View>
+    );
   }
 
-  const baseCurrencyData = currencies.find((c) => c.code === baseCurrency);
-  const selectedCurrencies = currencies.filter((c) =>
-    selectedCurrencyCodes.includes(c.code)
-  );
-
-  if (!baseCurrencyData) {
-    return <Text style={tw`text-red-500`}>Base currency not found</Text>;
-  }
+  const activeError = fiatError ?? cryptoError;
 
   return (
     <View style={tw`bg-white rounded-3xl p-6 flex-1`}>
       <Text style={tw`text-2xl font-bold mb-4`}>My currencies</Text>
-      <ScrollView style={tw`flex-1`}>
-        {selectedCurrencies.map((currency) => {
-          const convertedAmount = convertCurrency(
-            baseAmount,
-            baseCurrencyData,
-            currency
-          );
-          return (
-            <View
-              key={currency.code}
-              style={tw`flex-row items-center justify-between py-3 border-b border-gray-100`}
-            >
-              <View style={tw`flex-row items-center`}>
-                {currency.type === 'crypto' ? (
-                  <Image
-                    source={{ uri: currency.flag }}
-                    style={tw`w-6 h-6 mr-2`}
-                  />
-                ) : (
-                  <Text style={tw`mr-2 text-lg`}>{currency.flag}</Text>
-                )}
-                <Text style={tw`font-semibold`}>{currency.code}</Text>
-              </View>
-              <View style={tw`items-end`}>
-                <Text style={tw`font-semibold`}>
-                  {currency.symbol}
-                  {convertedAmount !== null
-                    ? convertedAmount.toFixed(2)
-                    : '0.00'}
-                </Text>
-                <Text style={tw`text-xs text-gray-500`}>
-                  {getDescription(currency, baseCurrencyData)}
-                </Text>
-              </View>
-            </View>
-          );
-        })}
-      </ScrollView>
-      {/* <TouchableOpacity
-        style={tw`absolute bottom-4 right-4 bg-black rounded-full w-12 h-12 items-center justify-center z-10`}
-        onPress={() => setIsModalVisible(true)}
-      >
-        <Text style={tw`text-white font-bold text-2xl`}>+</Text>
-      </TouchableOpacity>
-      <AddCurrencyModal
-        isVisible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        onAddCurrency={onAddCurrency}
-        availableCurrencies={availableCurrencies}
-      /> */}
+
+      {activeError && !bannerDismissed && (
+        <View
+          style={tw`flex-row items-center justify-between bg-red-100 rounded-xl p-3 mb-3`}
+        >
+          <Text style={tw`text-red-600 flex-1 mr-2`}>{activeError}</Text>
+          <TouchableOpacity
+            onPress={() => setBannerDismissed(true)}
+            hitSlop={8}
+          >
+            <Ionicons name="close" size={20} color="#dc2626" />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {!baseCurrencyData ? (
+        <Text style={tw`text-red-500`}>Base currency not found</Text>
+      ) : (
+        <ReorderableList
+          data={rows}
+          onReorder={handleReorder}
+          keyExtractor={rowKey}
+          renderItem={({ item }) => (
+            <CurrencyRowItem
+              row={item}
+              baseCurrencyData={baseCurrencyData}
+              baseAmount={baseAmount}
+              onRemove={onRemoveCurrency}
+            />
+          )}
+        />
+      )}
     </View>
   );
 };

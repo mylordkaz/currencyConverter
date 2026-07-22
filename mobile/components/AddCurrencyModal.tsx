@@ -83,7 +83,7 @@ const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
           <FlatList
             data={filteredCurrencies}
             renderItem={renderCurrencyItem}
-            keyExtractor={(item) => item.code}
+            keyExtractor={(item) => item.id}
           />
         </View>
       </View>

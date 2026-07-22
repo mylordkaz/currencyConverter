@@ -1,11 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-interface Currency {
-  code: string;
-  name: string;
-  flag: string;
-  type: string;
-}
+import type { Currency } from '../lib/currency';
 
 interface CurrencySelectionModalProps {
   currencies: Currency[];
@@ -57,14 +51,14 @@ const CurrencySelectionModal: React.FC<CurrencySelectionModalProps> = ({
           <input
             type="text"
             placeholder="Search..."
-            className="w-full p-2 bg-gray-100 border-b border-gray-300 rounded-t-lg focus:outline-none focus:ring focus:border-blue-300"
+            className="w-full p-2 bg-gray-100 border-b border-gray-300 rounded-t-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <div className="max-h-64 overflow-y-auto">
             {filteredCurrencies.map((currency) => (
               <div
-                key={currency.code}
+                key={currency.id}
                 className="flex items-center p-2 text-md hover:bg-gray-100 cursor-pointer"
                 onClick={() => onCurrencySelected(currency.code)}
               >

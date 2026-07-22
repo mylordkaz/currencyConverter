@@ -1,12 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-interface Currency {
-  code: string;
-  name: string;
-  flag: string;
-  symbol: string;
-  type: string;
-}
+import type { Currency } from '../lib/currency';
 
 interface CurrencyDropdownProps {
   currencies: Currency[];
@@ -86,7 +79,7 @@ const CurrencyDropdown: React.FC<CurrencyDropdownProps> = ({
           <div className="max-h-60 overflow-y-auto">
             {filteredCurrencies.map((currency) => (
               <div
-                key={currency.code}
+                key={currency.id}
                 className="flex items-center justify-between gap-32 p-2 rounded-b-lg hover:bg-gray-100 cursor-pointer"
                 onClick={() => {
                   onSelect(currency.code);

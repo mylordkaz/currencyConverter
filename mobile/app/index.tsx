@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import CurrencySelector from '@/components/CurrencySelector';
 import CurrencyList from '@/components/CurrencyList';
 import AddCurrencyModal from '@/components/AddCurrencyModal';
@@ -24,7 +24,12 @@ export default function Index() {
   const { cryptoCurrencies, fiatCurrencies, isLoading, fiatError, cryptoError } =
     useCurrencies();
 
-  const allCurrencies = [...fiatCurrencies, ...cryptoCurrencies];
+  // Stable identity so the reorderable list's data doesn't churn on every
+  // unrelated re-render (e.g. typing an amount).
+  const allCurrencies = useMemo(
+    () => [...fiatCurrencies, ...cryptoCurrencies],
+    [fiatCurrencies, cryptoCurrencies]
+  );
 
   useEffect(() => {
     const loadPersistedState = async () => {

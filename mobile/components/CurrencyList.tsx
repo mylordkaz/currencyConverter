@@ -1,6 +1,4 @@
 import { View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { RectButton } from 'react-native-gesture-handler';
-import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,8 +31,12 @@ interface CurrencyRow {
   currency: Currency | null;
 }
 
-const rowKey = (row: CurrencyRow): string =>
-  row.currency ? row.currency.id : `missing-${row.code}`;
+// Guard against react-native-reorderable-list calling keyExtractor with an
+// out-of-range (undefined) item during the drag animation.
+const rowKey = (row: CurrencyRow | undefined, index = 0): string => {
+  if (!row) return `row-${index}`;
+  return row.currency ? row.currency.id : `missing-${row.code}`;
+};
 
 const Tag: React.FC<{ type: Currency['type'] }> = ({ type }) => {
   const crypto = type === 'crypto';
@@ -57,13 +59,10 @@ const Tag: React.FC<{ type: Currency['type'] }> = ({ type }) => {
   );
 };
 
-const DeleteAction: React.FC<{ onPress: () => void }> = ({ onPress }) => (
-  <RectButton
-    style={{ backgroundColor: '#e5484d', borderRadius: 14, justifyContent: 'center', alignItems: 'center', width: 60, marginVertical: 5, marginLeft: 8 }}
-    onPress={onPress}
-  >
-    <Ionicons name="trash-outline" size={22} color="#fff" />
-  </RectButton>
+const RemoveButton: React.FC<{ onPress: () => void }> = ({ onPress }) => (
+  <TouchableOpacity onPress={onPress} hitSlop={10} style={{ paddingLeft: 6 }}>
+    <Ionicons name="close" size={18} color={C.faint} />
+  </TouchableOpacity>
 );
 
 const CurrencyRowItem = ({
@@ -81,20 +80,21 @@ const CurrencyRowItem = ({
   const isActive = useIsActive();
 
   // Saved code with no live match (e.g. a coin outside the current set):
-  // muted "rate unavailable" row, still swipe-to-delete-able.
+  // muted "rate unavailable" row.
   if (!row.currency) {
     return (
-      <ReanimatedSwipeable renderRightActions={() => <DeleteAction onPress={() => onRemove(row.code)} />}>
-        <View style={[tw`flex-row items-center justify-between px-4`, { paddingVertical: 14, backgroundColor: C.panel, borderBottomWidth: 1, borderBottomColor: C.line }]}>
-          <View style={tw`flex-row items-center`}>
-            <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: C.raise, borderWidth: 1, borderColor: C.line2, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: MONO, fontSize: 12, fontWeight: '700', color: C.faint }}>{row.code.slice(0, 3)}</Text>
-            </View>
-            <Text style={{ fontFamily: MONO, fontWeight: '700', color: C.dim, fontSize: 14.5, marginLeft: 13, letterSpacing: 0.4 }}>{row.code}</Text>
+      <View style={[tw`flex-row items-center justify-between px-4`, { paddingVertical: 14, backgroundColor: C.panel, borderBottomWidth: 1, borderBottomColor: C.line }]}>
+        <View style={tw`flex-row items-center`}>
+          <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: C.raise, borderWidth: 1, borderColor: C.line2, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontFamily: MONO, fontSize: 12, fontWeight: '700', color: C.faint }}>{row.code.slice(0, 3)}</Text>
           </View>
-          <Text style={{ fontFamily: MONO, fontSize: 11, color: C.faint }}>rate unavailable</Text>
+          <Text style={{ fontFamily: MONO, fontWeight: '700', color: C.dim, fontSize: 14.5, marginLeft: 13, letterSpacing: 0.4 }}>{row.code}</Text>
         </View>
-      </ReanimatedSwipeable>
+        <View style={tw`flex-row items-center`}>
+          <Text style={{ fontFamily: MONO, fontSize: 11, color: C.faint }}>rate unavailable</Text>
+          <RemoveButton onPress={() => onRemove(row.code)} />
+        </View>
+      </View>
     );
   }
 
@@ -102,33 +102,33 @@ const CurrencyRowItem = ({
   const convertedAmount = convertCurrency(baseAmount, baseCurrencyData, currency);
 
   return (
-    <ReanimatedSwipeable renderRightActions={() => <DeleteAction onPress={() => onRemove(currency.code)} />}>
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onLongPress={drag}
-        style={[
-          tw`flex-row items-center px-4`,
-          { paddingVertical: 14, backgroundColor: isActive ? C.raise : C.panel, borderBottomWidth: 1, borderBottomColor: C.line },
-        ]}
-      >
-        <CurrencyIcon currency={currency} size={42} />
-        <View style={tw`ml-3 flex-1`}>
-          <View style={tw`flex-row items-center`}>
-            <Text style={{ fontFamily: MONO, fontWeight: '700', color: C.text, fontSize: 14.5, letterSpacing: 0.4 }}>{currency.code}</Text>
-            <Tag type={currency.type} />
-          </View>
-          <Text style={{ color: C.faint, fontSize: 12.5, marginTop: 2 }} numberOfLines={1}>{currency.name}</Text>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onLongPress={drag}
+      delayLongPress={220}
+      style={[
+        tw`flex-row items-center px-4`,
+        { paddingVertical: 14, backgroundColor: isActive ? C.raise : C.panel, borderBottomWidth: 1, borderBottomColor: C.line },
+      ]}
+    >
+      <CurrencyIcon currency={currency} size={42} />
+      <View style={tw`ml-3 flex-1`}>
+        <View style={tw`flex-row items-center`}>
+          <Text style={{ fontFamily: MONO, fontWeight: '700', color: C.text, fontSize: 14.5, letterSpacing: 0.4 }}>{currency.code}</Text>
+          <Tag type={currency.type} />
         </View>
-        <View style={tw`items-end`}>
-          <Text style={{ fontFamily: MONO, fontWeight: '600', color: C.text, fontSize: 16.5 }}>
-            {convertedAmount !== null ? formatAmount(convertedAmount) : '0.00'}
-          </Text>
-          <Text style={{ fontFamily: MONO, fontSize: 10.5, color: C.faint, marginTop: 3 }}>
-            {getDescription(currency, baseCurrencyData)}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    </ReanimatedSwipeable>
+        <Text style={{ color: C.faint, fontSize: 12.5, marginTop: 2 }} numberOfLines={1}>{currency.name}</Text>
+      </View>
+      <View style={tw`items-end`}>
+        <Text style={{ fontFamily: MONO, fontWeight: '600', color: C.text, fontSize: 16.5 }}>
+          {convertedAmount !== null ? formatAmount(convertedAmount) : '0.00'}
+        </Text>
+        <Text style={{ fontFamily: MONO, fontSize: 10.5, color: C.faint, marginTop: 3 }}>
+          {getDescription(currency, baseCurrencyData)}
+        </Text>
+      </View>
+      <RemoveButton onPress={() => onRemove(currency.code)} />
+    </TouchableOpacity>
   );
 };
 
@@ -167,7 +167,8 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   );
 
   const handleReorder = ({ from, to }: ReorderableListReorderEvent) => {
-    onReorderCurrencies(reorderItems(selectedCurrencyCodes, from, to));
+    if (from < 0 || to < 0 || from === to || from >= rows.length) return;
+    onReorderCurrencies(reorderItems(rows, from, to).map((r) => r.code));
   };
 
   if (isLoading) {
@@ -218,6 +219,7 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
             data={rows}
             onReorder={handleReorder}
             keyExtractor={rowKey}
+            shouldUpdateActiveItem
             renderItem={({ item }) => (
               <CurrencyRowItem
                 row={item}

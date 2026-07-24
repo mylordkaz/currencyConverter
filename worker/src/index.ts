@@ -247,7 +247,7 @@ const PRIVACY_HTML = `<!doctype html>
   <p>We may update this policy from time to time. Changes will be posted on this page with a new "last updated" date.</p>
 
   <h2>7. Contact</h2>
-  <p>Questions about this policy? Contact <a href="mailto:kevin@s-arcana.co.jp">kevin@s-arcana.co.jp</a>.</p>
+  <p>Questions about this policy? Contact <a href="mailto:kev.tim@protonmail.com">kev.tim@protonmail.com</a>.</p>
 
   <footer>Tsuuka · currency converter · no data collected</footer>
 </div></body></html>`;

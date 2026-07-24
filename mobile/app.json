@@ -14,7 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#171c24"
       },
       "package": "com.mylord.tsukakan"
     },
@@ -51,7 +51,7 @@
         {
           "image": "./assets/images/splash.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#171c24"
         }
       ]
     ],

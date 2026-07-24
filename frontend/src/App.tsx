@@ -181,7 +181,7 @@ export default function App() {
             </div>
             <div>
               <div className="font-mono text-[15px] font-bold tracking-wide">
-                TSUKAKAN
+                TSUUKA
               </div>
               <div className="font-mono text-[9.5px] tracking-[0.18em] text-faint mt-0.5">
                 通貨 TERMINAL

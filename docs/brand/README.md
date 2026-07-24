@@ -1,11 +1,11 @@
 # Brand
 
-Money Swap logo — the "Dark Terminal" swap mark.
+Tsuuka logo — the "Dark Terminal" swap mark (two chevron heads).
 
 ## Source
 
-- `money-swap-icon.svg` — full app-icon tile (charcoal + blue `⇄`), square. Source for `icon.png` / `adaptive-icon.png`.
-- `money-swap-mark.svg` — mark only, transparent. For the Android adaptive foreground, splash, or any stamp on a coloured surface.
+- `tsuuka-icon.svg` — full app-icon tile (charcoal + blue chevrons), square. Source for `icon.png` / `adaptive-icon.png`.
+- `tsuuka-mark.svg` — mark only, transparent. For the Android adaptive foreground, splash, or any stamp on a coloured surface.
 
 Both are pure vector — edit here, then re-export the raster assets.
 

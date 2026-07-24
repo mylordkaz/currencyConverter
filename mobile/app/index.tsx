@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useMemo, useState } from 'react';
 import CurrencySelector from '@/components/CurrencySelector';
@@ -82,11 +83,12 @@ export default function Index() {
         {/* header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2, paddingTop: 8, paddingBottom: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ width: 36, height: 36, borderRadius: 13, backgroundColor: C.blueDim, borderWidth: 1, borderColor: C.blueLine, alignItems: 'center', justifyContent: 'center' }}>
-              <Image source={require('../assets/images/header-mark.png')} style={{ width: 22, height: 22 }} resizeMode="contain" />
+            <View style={{ width: 36, height: 36, borderRadius: 13, backgroundColor: C.blueDim, borderWidth: 1, borderColor: C.blueLine }}>
+              <Ionicons name="chevron-forward" size={14} color={C.blueBright} style={{ position: 'absolute', top: 5, right: 5 }} />
+              <Ionicons name="chevron-back" size={14} color={C.blueBright} style={{ position: 'absolute', bottom: 5, left: 5 }} />
             </View>
             <View style={{ marginLeft: 11 }}>
-              <Text style={{ fontFamily: MONO, fontSize: 15, fontWeight: '700', color: C.text, letterSpacing: 0.5 }}>MONEY SWAP</Text>
+              <Text style={{ fontFamily: MONO, fontSize: 15, fontWeight: '700', color: C.text, letterSpacing: 0.5 }}>TSUUKA</Text>
               <Text style={{ fontFamily: MONO, fontSize: 9.5, fontWeight: '500', color: C.faint, letterSpacing: 1.8, marginTop: 3 }}>通貨 TERMINAL</Text>
             </View>
           </View>

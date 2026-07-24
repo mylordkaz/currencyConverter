@@ -1,6 +1,6 @@
 # currencyConverter
 
-Fiat + crypto currency converter — *tsūka kansan* (通貨換算). Pick a base currency and amount, and see live conversions across a list of fiat currencies and cryptocurrencies you choose. The web app is branded **Tsukakan**; the mobile app is branded **Money Swap**.
+Fiat + crypto currency converter — *tsūka kansan* (通貨換算). Pick a base currency and amount, and see live conversions across a list of fiat currencies and cryptocurrencies you choose. The app is branded **Tsuuka** (通貨, "currency").
 
 ## Components
 

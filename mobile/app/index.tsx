@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useMemo, useState } from 'react';
 import CurrencySelector from '@/components/CurrencySelector';
@@ -83,7 +83,7 @@ export default function Index() {
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2, paddingTop: 8, paddingBottom: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={{ width: 36, height: 36, borderRadius: 13, backgroundColor: C.blueDim, borderWidth: 1, borderColor: C.blueLine, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: C.blueBright, fontSize: 18 }}>⇄</Text>
+              <Image source={require('../assets/images/header-mark.png')} style={{ width: 22, height: 22 }} resizeMode="contain" />
             </View>
             <View style={{ marginLeft: 11 }}>
               <Text style={{ fontFamily: MONO, fontSize: 15, fontWeight: '700', color: C.text, letterSpacing: 0.5 }}>MONEY SWAP</Text>

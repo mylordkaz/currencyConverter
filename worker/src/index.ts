@@ -188,6 +188,79 @@ function preflight(): Response {
 const upstreamDown = (): Response =>
   json({ error: "rate provider unavailable" }, { status: 502 });
 
+// Privacy policy page (App Store requires a public URL). Tsuuka collects no
+// personal data; this documents that. Served as a self-contained HTML page.
+const PRIVACY_HTML = `<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Tsuuka — Privacy Policy</title>
+<style>
+  :root{--bg:#171c24;--panel:#1f2732;--line:#2f3947;--ink:#eaeef4;--dim:#9aa5b4;--faint:#6a7688;--blue:#6a9bff;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,system-ui,"Segoe UI",Roboto,sans-serif;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(900px 500px at 88% -12%,rgba(61,123,255,.14),transparent 60%)}
+  .wrap{max-width:720px;margin:0 auto;padding:56px 22px 88px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);margin:0 0 12px}
+  h1{font-family:var(--mono);font-size:28px;letter-spacing:-.01em;margin:0 0 6px}
+  .updated{color:var(--faint);font-family:var(--mono);font-size:12px;margin:0 0 34px}
+  h2{font-family:var(--mono);font-size:15px;letter-spacing:.02em;color:var(--ink);margin:34px 0 10px}
+  p{color:var(--dim);margin:0 0 14px}
+  ul{color:var(--dim);margin:0 0 14px;padding-left:20px}li{margin:6px 0}
+  a{color:var(--blue)}
+  strong{color:var(--ink)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:22px 0}
+  footer{margin-top:44px;padding-top:20px;border-top:1px solid var(--line);color:var(--faint);font-size:13px}
+</style></head>
+<body><div class="wrap">
+  <p class="eyebrow">Tsuuka</p>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: 24 July 2026</p>
+
+  <div class="card"><p style="margin:0"><strong>Short version:</strong> Tsuuka does not collect, store, or share any personal information. There are no accounts, no analytics, no advertising, and no tracking.</p></div>
+
+  <p>Tsuuka is a currency converter for fiat currencies and cryptocurrencies. This policy explains how the app handles information.</p>
+
+  <h2>1. Information we collect</h2>
+  <p>None. Tsuuka has no sign-in and no analytics, advertising, or tracking SDKs. We do not collect your name, email, location, contacts, device identifiers, or usage data.</p>
+
+  <h2>2. Information stored on your device</h2>
+  <p>Your preferences — the currencies you add, your base currency, and the amount you enter — are saved <strong>locally on your device</strong> using the operating system's standard storage. This data never leaves your device, is not accessible to us, and is removed when you delete the app.</p>
+
+  <h2>3. Network requests</h2>
+  <p>To show exchange rates and icons, the app requests data over the internet from:</p>
+  <ul>
+    <li>the Tsuuka rates service (<code>tsukakan-rates.mylord.workers.dev</code>), which returns public fiat and cryptocurrency rates;</li>
+    <li>public content-delivery networks for currency flag and coin-logo images.</li>
+  </ul>
+  <p>As with any internet request, these services necessarily receive your device's IP address in order to return a response. The app sends them <strong>no personal information</strong>, and no account or identifier is attached to these requests.</p>
+
+  <h2>4. Third-party services</h2>
+  <p>Rate data originates from public, open datasets; images are served from public CDNs. Tsuuka does not sell or share data with third parties for advertising or any other purpose.</p>
+
+  <h2>5. Children's privacy</h2>
+  <p>Tsuuka is not directed to children under 13 and collects no personal information from anyone, including children.</p>
+
+  <h2>6. Changes to this policy</h2>
+  <p>We may update this policy from time to time. Changes will be posted on this page with a new "last updated" date.</p>
+
+  <h2>7. Contact</h2>
+  <p>Questions about this policy? Contact <a href="mailto:kevin@s-arcana.co.jp">kevin@s-arcana.co.jp</a>.</p>
+
+  <footer>Tsuuka · currency converter · no data collected</footer>
+</div></body></html>`;
+
+function privacyPage(): Response {
+  return new Response(PRIVACY_HTML, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=3600",
+    },
+  });
+}
+
 /**
  * Serve `producer()` through the Workers Cache API keyed by `key`. On a hit we
  * return the cached transformed response and do zero upstream work. On a miss we
@@ -295,6 +368,9 @@ async function route(request: Request): Promise<Response> {
 
     case "/api/crypto":
       return withCache("https://rates-cache.internal/crypto", fetchCrypto);
+
+    case "/privacy":
+      return privacyPage();
 
     default:
       return json({ error: "not found" }, { status: 404 });

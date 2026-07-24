@@ -189,6 +189,15 @@ describe("routing", () => {
     expect(await res.json()).toEqual({ status: "ok" });
   });
 
+  it("GET /privacy -> 200 HTML privacy policy", async () => {
+    const res = await req("/privacy");
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+    const body = await res.text();
+    expect(body).toContain("Privacy Policy");
+    expect(body).toContain("personal information");
+  });
+
   it("unknown path -> 404 JSON with CORS", async () => {
     const res = await req("/nope");
     expect(res.status).toBe(404);

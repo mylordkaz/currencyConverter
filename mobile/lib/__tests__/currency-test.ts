@@ -112,9 +112,10 @@ describe('getDescription', () => {
 });
 
 describe('formatAmount', () => {
-  it('rounds values >= 1 to 2 decimals', () => {
-    expect(formatAmount(1234.567)).toBe('1234.57');
+  it('rounds values >= 1 to 2 decimals with grouped thousands', () => {
+    expect(formatAmount(1234.567)).toBe('1,234.57');
     expect(formatAmount(5)).toBe('5.00');
+    expect(formatAmount(3136263.54)).toBe('3,136,263.54');
   });
 
   it('keeps 4 significant digits for values < 1 (never "0.0000")', () => {

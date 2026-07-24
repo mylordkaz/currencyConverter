@@ -117,7 +117,7 @@ export function getFlagEmoji(code: string, override?: string): string {
 
 /**
  * Format a numeric amount for display.
- * - |value| >= 1: fixed 2 decimals (1234.567 -> "1234.57")
+ * - |value| >= 1: fixed 2 decimals, grouped thousands (1234.567 -> "1,234.57")
  * - |value| < 1:  up to 4 significant digits, so tiny crypto rates keep
  *   precision (0.00000011 -> "0.00000011", never "0.0000")
  * - 0 / non-finite: "0.00"
@@ -130,7 +130,7 @@ export function formatAmount(value: number): string {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-      useGrouping: false,
+      useGrouping: true,
     }).format(value);
   }
   return new Intl.NumberFormat('en-US', {

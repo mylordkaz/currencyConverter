@@ -9,14 +9,17 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mylord.tsukakan"
+      "bundleIdentifier": "com.tsuuka.mobile",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#171c24"
       },
-      "package": "com.mylord.tsukakan"
+      "package": "com.tsuuka.mobile"
     },
     "web": {
       "bundler": "metro",

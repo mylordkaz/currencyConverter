@@ -12,10 +12,18 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://tsukakan-rates.mylord.workers.dev/"
+      }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6794003933",
+        "appleTeamId": "759R6SY5TC"
+      }
+    }
   }
 }

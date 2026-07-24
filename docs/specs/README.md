@@ -52,7 +52,7 @@ Sequence: `12 → (13 ∥ 14) → 15`. After 15, the system has zero secrets, ze
 
 - **Rotate the ExchangeRate-API key** after spec 02 lands. The current key has been exposed via error responses and URL-embedded logging (see spec 02). Rotating before the fix is pointless; rotating after is mandatory.
 - Review the CoinMarketCap key: it is sent via header (not URL) so exposure is unlikely, but rotate if server logs were ever shared.
-- **Branding:** the app is named **Tsuuka** (通貨, "currency") across web and mobile — unified from the earlier split ("Tsukakan" web / "Money Swap" mobile). Infrastructure identity does NOT change with the name: the Worker stays `tsukakan-rates` (deployed URL), and the bundle id / package stay `com.mylord.tsukakan`.
+- **Branding:** the app is named **Tsuuka** (通貨, "currency") across web and mobile — unified from the earlier split ("Tsukakan" web / "Money Swap" mobile). The Worker deployment stays `tsukakan-rates` (its live URL) and the EAS slug stays `mobile_V1`; the iOS/Android bundle id is `com.tsuuka.mobile` (matches the App Store Connect app).
 - **EAS slug:** the mobile app keeps slug `mobile_V1` because it is bound to the existing EAS project (`62f35feb-…`). Renaming the slug means creating a new EAS project — say so explicitly if wanted (see spec 01 §A5).
 
 ## Verification quick reference

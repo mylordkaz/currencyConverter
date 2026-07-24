@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Keyboard, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useMemo, useState } from 'react';
@@ -79,6 +79,7 @@ export default function Index() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 4 }}>
         {/* header */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2, paddingTop: 8, paddingBottom: 8 }}>
@@ -110,6 +111,7 @@ export default function Index() {
           onCurrencyChange={handleCurrencyChange}
           amount={amount}
           onAmountChange={handleAmountChange}
+          pinnedCodes={selectedCurrencies}
         />
 
         {/* ledger */}
@@ -127,6 +129,7 @@ export default function Index() {
           />
         </View>
       </View>
+      </TouchableWithoutFeedback>
 
       {/* FAB */}
       <TouchableOpacity

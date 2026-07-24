@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
   Modal,
@@ -19,6 +19,8 @@ interface CurrencySelectorProps {
   onCurrencyChange: (currency: string) => void;
   amount: string;
   onAmountChange: (amount: string) => void;
+  /** Codes in the user's list — surfaced first in the picker for quick swaps. */
+  pinnedCodes: string[];
 }
 
 const { width, height } = Dimensions.get('window');
@@ -29,46 +31,72 @@ const CurrencySelector: React.FC<CurrencySelectorProps> = ({
   onCurrencyChange,
   amount,
   onAmountChange,
+  pinnedCodes,
 }) => {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredCurrencies, setFilteredCurrencies] = useState(currencies);
 
   const selectedCurrencyData = currencies.find(
     (c) => c.code === selectedCurrency
   );
 
-  useEffect(() => {
-    const q = searchQuery.toLowerCase();
-    setFilteredCurrencies(
-      currencies.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
-      )
+  // Currencies in the user's list first (in their list order), then the rest.
+  const { ordered, pinnedCount } = useMemo(() => {
+    const pinned: Currency[] = [];
+    pinnedCodes.forEach((code) => {
+      const match = currencies.find((c) => c.code === code);
+      if (match) pinned.push(match);
+    });
+    const pinnedSet = new Set(pinned.map((c) => c.code));
+    const rest = currencies.filter((c) => !pinnedSet.has(c.code));
+    return { ordered: [...pinned, ...rest], pinnedCount: pinned.length };
+  }, [currencies, pinnedCodes]);
+
+  const filteredCurrencies = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return ordered;
+    return ordered.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
     );
-  }, [searchQuery, currencies]);
+  }, [searchQuery, ordered]);
+
+  // Group labels only make sense in the unsearched, grouped view.
+  const showGroups = searchQuery.trim().length === 0 && pinnedCount > 0;
 
   const closeModal = useCallback(() => {
     setIsDropdownVisible(false);
     setSearchQuery('');
   }, []);
 
-  const renderCurrencyItem = ({ item }: { item: Currency }) => (
-    <TouchableOpacity
-      style={[tw`flex-row items-center px-4 py-3`, { borderBottomWidth: 1, borderBottomColor: C.line }]}
-      onPress={() => {
-        onCurrencyChange(item.code);
-        closeModal();
-      }}
-    >
-      <CurrencyIcon currency={item} size={34} />
-      <View style={tw`ml-3 flex-1`}>
-        <Text style={{ fontFamily: MONO, fontWeight: '700', color: C.text, fontSize: 14, letterSpacing: 0.4 }}>
-          {item.code}
-        </Text>
-        <Text style={{ color: C.faint, fontSize: 12.5, marginTop: 1 }}>{item.name}</Text>
-      </View>
-    </TouchableOpacity>
+  const renderGroupLabel = (text: string) => (
+    <View style={{ backgroundColor: C.bg, paddingHorizontal: 16, paddingVertical: 7 }}>
+      <Text style={{ fontFamily: MONO, fontSize: 9.5, fontWeight: '700', letterSpacing: 1.6, color: C.faint }}>
+        {text}
+      </Text>
+    </View>
+  );
+
+  const renderCurrencyItem = ({ item, index }: { item: Currency; index: number }) => (
+    <>
+      {showGroups && index === 0 && renderGroupLabel('IN YOUR LIST')}
+      {showGroups && index === pinnedCount && renderGroupLabel('ALL CURRENCIES')}
+      <TouchableOpacity
+        style={[tw`flex-row items-center px-4 py-3`, { borderBottomWidth: 1, borderBottomColor: C.line }]}
+        onPress={() => {
+          onCurrencyChange(item.code);
+          closeModal();
+        }}
+      >
+        <CurrencyIcon currency={item} size={34} />
+        <View style={tw`ml-3 flex-1`}>
+          <Text style={{ fontFamily: MONO, fontWeight: '700', color: C.text, fontSize: 14, letterSpacing: 0.4 }}>
+            {item.code}
+          </Text>
+          <Text style={{ color: C.faint, fontSize: 12.5, marginTop: 1 }}>{item.name}</Text>
+        </View>
+      </TouchableOpacity>
+    </>
   );
 
   return (

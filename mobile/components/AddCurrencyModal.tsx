@@ -8,6 +8,14 @@ import {
   TextInput,
   Dimensions,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import tw from 'twrnc';
 import { Currency } from '@/constants/type';
 import { C, MONO } from '@/constants/theme';
@@ -30,10 +38,30 @@ const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
   availableCurrencies,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const translateY = useSharedValue(0);
 
   useEffect(() => {
     if (!isVisible) setSearchQuery('');
+    else translateY.value = 0;
   }, [isVisible]);
+
+  const panGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      if (e.translationY > 0) translateY.value = e.translationY;
+    })
+    .onEnd((e) => {
+      if (e.translationY > MODAL_HEIGHT * 0.25 || e.velocityY > 800) {
+        translateY.value = withTiming(MODAL_HEIGHT, { duration: 200 }, () => {
+          runOnJS(onClose)();
+        });
+      } else {
+        translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+      }
+    });
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
   const filteredCurrencies = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -68,17 +96,22 @@ const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
     <Modal visible={isVisible} animationType="slide" transparent>
       <View style={[tw`flex-1 justify-end`, { backgroundColor: 'rgba(9,12,17,0.5)' }]}>
         <TouchableOpacity style={tw`flex-1`} activeOpacity={1} onPress={onClose} />
-        <View
+        <Animated.View
           style={[
             tw`px-5 pb-5`,
             { height: MODAL_HEIGHT, backgroundColor: C.panel2, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderBottomWidth: 0, borderColor: C.line },
+            sheetStyle,
           ]}
         >
-          <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: C.line2, alignSelf: 'center', marginTop: 8, marginBottom: 16 }} />
-          <Text style={{ fontFamily: MONO, fontSize: 17, fontWeight: '700', color: C.text, letterSpacing: 0.6 }}>ADD CURRENCY</Text>
-          <Text style={{ fontFamily: MONO, fontSize: 11, color: C.faint, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 4, marginBottom: 16 }}>
-            {fiatCount} fiat · {cryptoCount} coins
-          </Text>
+          <GestureDetector gesture={panGesture}>
+            <View style={{ paddingBottom: 4 }}>
+              <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: C.line2, alignSelf: 'center', marginTop: 8, marginBottom: 16 }} />
+              <Text style={{ fontFamily: MONO, fontSize: 17, fontWeight: '700', color: C.text, letterSpacing: 0.6 }}>ADD CURRENCY</Text>
+              <Text style={{ fontFamily: MONO, fontSize: 11, color: C.faint, letterSpacing: 0.4, textTransform: 'uppercase', marginTop: 4, marginBottom: 16 }}>
+                {fiatCount} fiat · {cryptoCount} coins
+              </Text>
+            </View>
+          </GestureDetector>
           <TextInput
             style={{ backgroundColor: C.bg, borderWidth: 1, borderColor: C.line2, color: C.text, borderRadius: 13, paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, marginBottom: 8 }}
             placeholder="Search currencies…"
@@ -92,7 +125,7 @@ const AddCurrencyModal: React.FC<AddCurrencyModalProps> = ({
             keyExtractor={(item) => item.id}
             keyboardShouldPersistTaps="handled"
           />
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );

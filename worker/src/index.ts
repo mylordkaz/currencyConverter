@@ -38,15 +38,9 @@ const ICON_BASE =
 
 const BASE_RE = /^[A-Z]{3}$/;
 
-/**
- * Curated set of major cryptocurrencies exposed by /api/crypto. `code` is the
- * fawazahmed0/currency-api key (lowercase); the USD price is derived as
- * 1 / rate (the file gives "1 USD = <rate> <code>"). Every code was verified
- * present in the source's currencies.json (2026-07-16). It is a fixed curated
- * list rather than a live market-cap ranking — the source is a flat code->rate
- * map with no ranking — which is fine for a converter.
- */
-const CRYPTO_LIST: ReadonlyArray<{ code: string; symbol: string; name: string }> =
+// Curated coins for /api/crypto; `code` is the source key, USD price = 1/rate. Every code
+// verified in the source AND to be the famous asset (2026-08-02): pol/one/leo/gmx are impostors.
+export const CRYPTO_LIST: ReadonlyArray<{ code: string; symbol: string; name: string }> =
   [
     { code: "btc", symbol: "BTC", name: "Bitcoin" },
     { code: "eth", symbol: "ETH", name: "Ethereum" },
@@ -74,6 +68,61 @@ const CRYPTO_LIST: ReadonlyArray<{ code: string; symbol: string; name: string }>
     { code: "xmr", symbol: "XMR", name: "Monero" },
     { code: "algo", symbol: "ALGO", name: "Algorand" },
     { code: "vet", symbol: "VET", name: "VeChain" },
+    { code: "usdc", symbol: "USDC", name: "USD Coin" },
+    { code: "dai", symbol: "DAI", name: "Dai" },
+    { code: "cro", symbol: "CRO", name: "Cronos" },
+    { code: "hbar", symbol: "HBAR", name: "Hedera" },
+    { code: "mkr", symbol: "MKR", name: "Maker" },
+    { code: "aave", symbol: "AAVE", name: "Aave" },
+    { code: "arb", symbol: "ARB", name: "Arbitrum" },
+    { code: "op", symbol: "OP", name: "Optimism" },
+    { code: "sui", symbol: "SUI", name: "Sui" },
+    { code: "inj", symbol: "INJ", name: "Injective" },
+    { code: "ldo", symbol: "LDO", name: "Lido DAO" },
+    { code: "grt", symbol: "GRT", name: "The Graph" },
+    { code: "stx", symbol: "STX", name: "Stacks" },
+    { code: "egld", symbol: "EGLD", name: "MultiversX" },
+    { code: "flow", symbol: "FLOW", name: "Flow" },
+    { code: "xtz", symbol: "XTZ", name: "Tezos" },
+    { code: "theta", symbol: "THETA", name: "Theta Network" },
+    { code: "sand", symbol: "SAND", name: "The Sandbox" },
+    { code: "mana", symbol: "MANA", name: "Decentraland" },
+    { code: "axs", symbol: "AXS", name: "Axie Infinity" },
+    { code: "imx", symbol: "IMX", name: "Immutable X" },
+    { code: "chz", symbol: "CHZ", name: "Chiliz" },
+    { code: "crv", symbol: "CRV", name: "Curve DAO" },
+    { code: "enj", symbol: "ENJ", name: "Enjin Coin" },
+    { code: "zec", symbol: "ZEC", name: "Zcash" },
+    { code: "dash", symbol: "DASH", name: "Dash" },
+    { code: "neo", symbol: "NEO", name: "NEO" },
+    { code: "ksm", symbol: "KSM", name: "Kusama" },
+    { code: "mina", symbol: "MINA", name: "Mina" },
+    { code: "gala", symbol: "GALA", name: "Gala" },
+    { code: "ape", symbol: "APE", name: "ApeCoin" },
+    { code: "comp", symbol: "COMP", name: "Compound" },
+    { code: "snx", symbol: "SNX", name: "Synthetix" },
+    { code: "qnt", symbol: "QNT", name: "Quant" },
+    { code: "cake", symbol: "CAKE", name: "PancakeSwap" },
+    { code: "1inch", symbol: "1INCH", name: "1inch" },
+    { code: "bat", symbol: "BAT", name: "Basic Attention Token" },
+    { code: "lrc", symbol: "LRC", name: "Loopring" },
+    { code: "zil", symbol: "ZIL", name: "Zilliqa" },
+    { code: "waves", symbol: "WAVES", name: "Waves" },
+    { code: "kava", symbol: "KAVA", name: "Kava" },
+    { code: "celo", symbol: "CELO", name: "Celo" },
+    { code: "ar", symbol: "AR", name: "Arweave" },
+    { code: "hnt", symbol: "HNT", name: "Helium" },
+    { code: "bsv", symbol: "BSV", name: "Bitcoin SV" },
+    { code: "xem", symbol: "XEM", name: "NEM" },
+    { code: "dcr", symbol: "DCR", name: "Decred" },
+    { code: "rvn", symbol: "RVN", name: "Ravencoin" },
+    { code: "qtum", symbol: "QTUM", name: "Qtum" },
+    { code: "knc", symbol: "KNC", name: "Kyber Network" },
+    { code: "xdc", symbol: "XDC", name: "XDC Network" },
+    { code: "dydx", symbol: "DYDX", name: "dYdX" },
+    { code: "kcs", symbol: "KCS", name: "KuCoin Token" },
+    { code: "pepe", symbol: "PEPE", name: "Pepe" },
+    { code: "kas", symbol: "KAS", name: "Kaspa" },
   ];
 
 // ---------------------------------------------------------------------------

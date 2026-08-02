@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseRateMap, toFiatOut, deriveCrypto, iconUrl } from "../src/index";
+import { parseRateMap, toFiatOut, deriveCrypto, iconUrl, CRYPTO_LIST } from "../src/index";
 
 describe("parseRateMap", () => {
   it("extracts the base sub-map as a lowercase code->rate map + date", () => {
@@ -59,11 +59,7 @@ describe("deriveCrypto", () => {
   });
 
   it("yields unique symbols and non-empty icon URLs across the full list", () => {
-    const codes = [
-      "btc", "eth", "usdt", "bnb", "sol", "xrp", "ada", "doge", "trx", "dot",
-      "link", "ltc", "bch", "avax", "xlm", "uni", "atom", "shib", "near", "apt",
-      "fil", "etc", "icp", "xmr", "algo", "vet",
-    ];
+    const codes = CRYPTO_LIST.map((c) => c.code);
     const rates: Record<string, number> = {};
     for (const c of codes) rates[c] = 2; // price = 0.5 each
     const out = deriveCrypto({ updatedAt: "d", rates });

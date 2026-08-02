@@ -9,6 +9,8 @@ import {
   getDescription,
   getFlagEmoji,
   formatAmount,
+  formatAmountInput,
+  parseAmountInput,
 } from '@/lib/currency';
 
 // Realistic rates. Fiat rate = units per 1 USD; crypto rate = USD price of 1 unit.
@@ -132,6 +134,56 @@ describe('formatAmount', () => {
   it('formats non-finite as "0.00"', () => {
     expect(formatAmount(NaN)).toBe('0.00');
     expect(formatAmount(Infinity)).toBe('0.00');
+  });
+});
+
+describe('formatAmountInput', () => {
+  it('groups thousands as digits are typed', () => {
+    expect(formatAmountInput('1000')).toBe('1,000');
+    expect(formatAmountInput('10000')).toBe('10,000');
+    expect(formatAmountInput('3136263')).toBe('3,136,263');
+  });
+
+  it('re-formats text that already contains separators (further typing / paste)', () => {
+    expect(formatAmountInput('1,0000')).toBe('10,000');
+    expect(formatAmountInput('1,234,5')).toBe('12,345');
+  });
+
+  it('keeps typed decimals verbatim, without grouping or padding', () => {
+    expect(formatAmountInput('1234.5')).toBe('1,234.5');
+    expect(formatAmountInput('1234.')).toBe('1,234.');
+    expect(formatAmountInput('10000.123456')).toBe('10,000.123456');
+  });
+
+  it('normalizes a leading decimal point to "0."', () => {
+    expect(formatAmountInput('.5')).toBe('0.5');
+  });
+
+  it('strips extra decimal points, leading zeros, and non-numeric characters', () => {
+    expect(formatAmountInput('1.2.3')).toBe('1.23');
+    expect(formatAmountInput('007')).toBe('7');
+    expect(formatAmountInput('12ab')).toBe('12');
+  });
+
+  it('returns empty for empty or fully invalid input', () => {
+    expect(formatAmountInput('')).toBe('');
+    expect(formatAmountInput('abc')).toBe('');
+  });
+});
+
+describe('parseAmountInput', () => {
+  it('parses grouped values back to numbers', () => {
+    expect(parseAmountInput('10,000')).toBe(10000);
+    expect(parseAmountInput('1,234.5')).toBe(1234.5);
+    expect(parseAmountInput('0.5')).toBe(0.5);
+  });
+
+  it('round-trips through formatAmountInput', () => {
+    expect(parseAmountInput(formatAmountInput('3136263.54'))).toBe(3136263.54);
+  });
+
+  it('returns NaN for empty input', () => {
+    expect(parseAmountInput('')).toBeNaN();
   });
 });
 

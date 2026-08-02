@@ -122,6 +122,32 @@ export function getFlagEmoji(code: string, override?: string): string {
  *   precision (0.00000011 -> "0.00000011", never "0.0000")
  * - 0 / non-finite: "0.00"
  */
+/**
+ * Live-format amount-input text with grouped thousands ("10000" -> "10,000").
+ * Keeps typed decimals verbatim; strips all but digits and the first ".".
+ */
+export function formatAmountInput(text: string): string {
+  const cleaned = text.replace(/[^0-9.]/g, '');
+  if (cleaned === '') {
+    return '';
+  }
+  const dotIndex = cleaned.indexOf('.');
+  const hasDot = dotIndex !== -1;
+  let intPart = hasDot ? cleaned.slice(0, dotIndex) : cleaned;
+  const decPart = hasDot ? cleaned.slice(dotIndex + 1).replace(/\./g, '') : '';
+  intPart = intPart.replace(/^0+(?=\d)/, '');
+  if (intPart === '') {
+    intPart = '0'; // ".5" -> "0.5"
+  }
+  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return hasDot ? `${grouped}.${decPart}` : grouped;
+}
+
+/** Parse a formatAmountInput string back to a number (NaN for empty). */
+export function parseAmountInput(text: string): number {
+  return parseFloat(text.replace(/,/g, ''));
+}
+
 export function formatAmount(value: number): string {
   if (isNaN(value) || !isFinite(value) || value === 0) {
     return '0.00';

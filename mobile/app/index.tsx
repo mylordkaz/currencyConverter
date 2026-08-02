@@ -23,7 +23,7 @@ export default function Index() {
   // stored values with the defaults on mount.
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const { cryptoCurrencies, fiatCurrencies, isLoading, fiatError, cryptoError } =
+  const { cryptoCurrencies, fiatCurrencies, isLoading, fiatError, cryptoError, updatedAt } =
     useCurrencies();
 
   // Stable identity so the reorderable list's data doesn't churn on every
@@ -105,7 +105,9 @@ export default function Index() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: C.line, borderRadius: 13, paddingHorizontal: 11, paddingVertical: 6 }}>
             <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.blue, marginRight: 6 }} />
-            <Text style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: 1.2, color: C.dim }}>LIVE</Text>
+            <Text style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: 1.2, color: C.dim }}>
+              {updatedAt ?? '—'}
+            </Text>
           </View>
         </View>
 

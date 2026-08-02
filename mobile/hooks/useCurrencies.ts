@@ -11,7 +11,7 @@ const joinUrl = (base: string, path: string): string =>
 /** Shape of `GET /api/fiat` from the rates worker (codes UPPERCASE). */
 interface FiatResponse {
   base: string;
-  updatedAt: string;
+  updatedAt: string | null;
   rates: Record<string, number>;
 }
 
@@ -30,6 +30,8 @@ const useCurrencies = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [fiatError, setFiatError] = useState<string | null>(null);
   const [cryptoError, setCryptoError] = useState<string | null>(null);
+  // Source-data date ("YYYY-MM-DD") from the fiat feed; crypto shares the same source.
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
   useEffect(() => {
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
@@ -79,6 +81,7 @@ const useCurrencies = () => {
           type: 'fiat' as const,
         }));
       setFiatCurrencies(fiats);
+      setUpdatedAt(response.data.updatedAt ?? null);
     };
 
     const fetchData = async () => {
@@ -114,7 +117,7 @@ const useCurrencies = () => {
     fetchData();
   }, []);
 
-  return { cryptoCurrencies, fiatCurrencies, isLoading, fiatError, cryptoError };
+  return { cryptoCurrencies, fiatCurrencies, isLoading, fiatError, cryptoError, updatedAt };
 };
 
 export default useCurrencies;

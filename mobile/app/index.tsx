@@ -8,6 +8,7 @@ import CurrencyList from '@/components/CurrencyList';
 import AddCurrencyModal from '@/components/AddCurrencyModal';
 import useCurrencies from '@/hooks/useCurrencies';
 import { Currency } from '@/constants/type';
+import { formatAmountInput, parseAmountInput } from '@/lib/currency';
 import { C, MONO } from '@/constants/theme';
 
 const STORAGE_KEY_CURRENCIES = 'selectedCurrencies';
@@ -65,8 +66,17 @@ export default function Index() {
     );
   }, [isLoaded, selectedCurrency]);
 
-  const handleCurrencyChange = (currency: string) => setSelectedCurrency(currency);
-  const handleAmountChange = (value: string) => setAmount(value);
+  // On base change, an old base that has a row in the list moves to the top.
+  const handleCurrencyChange = (currency: string) => {
+    if (currency === selectedCurrency) return;
+    setSelectedCurrencies((prev) =>
+      prev.includes(selectedCurrency)
+        ? [selectedCurrency, ...prev.filter((c) => c !== selectedCurrency)]
+        : prev
+    );
+    setSelectedCurrency(currency);
+  };
+  const handleAmountChange = (value: string) => setAmount(formatAmountInput(value));
   const handleAddCurrency = (currency: Currency) => {
     if (!selectedCurrencies.includes(currency.code)) {
       setSelectedCurrencies((prev) => [...prev, currency.code]);
@@ -120,12 +130,13 @@ export default function Index() {
             currencies={allCurrencies}
             selectedCurrencyCodes={selectedCurrencies}
             baseCurrency={selectedCurrency}
-            baseAmount={parseFloat(amount) || 0}
+            baseAmount={parseAmountInput(amount) || 0}
             isLoading={isLoading}
             fiatError={fiatError}
             cryptoError={cryptoError}
             onRemoveCurrency={handleRemoveCurrency}
             onReorderCurrencies={handleReorderCurrencies}
+            onSelectCurrency={handleCurrencyChange}
           />
         </View>
       </View>

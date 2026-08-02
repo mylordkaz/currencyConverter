@@ -27,6 +27,7 @@ interface CurrencyListProps {
   cryptoError: string | null;
   onRemoveCurrency: (currencyCode: string) => void;
   onReorderCurrencies: (newOrder: string[]) => void;
+  onSelectCurrency: (currencyCode: string) => void;
 }
 
 /** A selected code paired with its live currency data (null => unresolved). */
@@ -82,12 +83,14 @@ const CurrencyRowItem = ({
   baseCurrencyData,
   baseAmount,
   onRemove,
+  onSelect,
   openRowRef,
 }: {
   row: CurrencyRow;
   baseCurrencyData: Currency;
   baseAmount: number;
   onRemove: (code: string) => void;
+  onSelect: (code: string) => void;
   // Shared across rows so only one can be open at a time.
   openRowRef: React.MutableRefObject<SwipeableMethods | null>;
 }) => {
@@ -164,6 +167,7 @@ const CurrencyRowItem = ({
     >
       <TouchableOpacity
         activeOpacity={0.85}
+        onPress={() => onSelect(currency.code)}
         onLongPress={drag}
         delayLongPress={220}
         style={[
@@ -209,6 +213,7 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
   cryptoError,
   onRemoveCurrency,
   onReorderCurrencies,
+  onSelectCurrency,
 }) => {
   const [bannerDismissed, setBannerDismissed] = useState(false);
   // The single currently-open swipeable row, shared across all rows.
@@ -289,6 +294,7 @@ const CurrencyList: React.FC<CurrencyListProps> = ({
                 baseCurrencyData={baseCurrencyData}
                 baseAmount={baseAmount}
                 onRemove={onRemoveCurrency}
+                onSelect={onSelectCurrency}
                 openRowRef={openRowRef}
               />
             )}
